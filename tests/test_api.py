@@ -125,20 +125,37 @@ def test_roads_cut_endpoint():
 
 
 def test_overlays_endpoint():
-    """GET /api/overlays should return spatial bounds and placeholder note."""
+    """GET /api/overlays should return spatial bounds, corners, and layer availability."""
     res = client.get("/api/overlays")
     assert res.status_code == 200
     data = res.json()
     assert "bounds" in data
     assert "note" in data
-    assert "images not generated yet" in data["note"]
+    assert "layers" in data
+    assert len(data["bounds"]) == 4
 
 
-def test_report_unavailable():
-    """GET /api/report should return 503 until report is generated."""
+def test_overlay_bounds_file():
+    """GET /api/overlays/bounds.json should serve the generated bounds JSON."""
+    res = client.get("/api/overlays/bounds.json")
+    assert res.status_code == 200
+    data = res.json()
+    assert "bounds" in data
+    assert "corners" in data
+
+
+def test_overlay_file_not_found():
+    """GET /api/overlays/nonexistent.png should return 404."""
+    res = client.get("/api/overlays/nonexistent.png")
+    assert res.status_code == 404
+
+
+def test_report_endpoint():
+    """GET /api/report should return the generated HTML report."""
     res = client.get("/api/report")
-    assert res.status_code == 503
-    assert "not been generated yet" in res.json()["detail"]
+    assert res.status_code == 200
+    assert "text/html" in res.headers.get("content-type", "")
+    assert "TerraAlert Incident Report" in res.text
 
 
 def test_rescore_changes_ranking():

@@ -18,6 +18,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 import config
@@ -238,34 +239,102 @@ def post_rescore(body: RescoreRequest) -> ZoneCollection:
 
 @app.get("/api/overlays", response_model=OverlaysResponse, tags=["Overlays"])
 def get_overlays() -> OverlaysResponse:
-    """Return raster overlay layer URLs and spatial bounds."""
+    """Return raster overlay layer URLs and spatial bounds.
+
+    Checks outputs/overlays/ (and fallback outputs/demo/overlays/) for bounds.json
+    and rendered PNGs (pre, post, flood, confidence).
+    """
     bounds = list(config.AOI_BBOX)
+    corners: Optional[list[list[float]]] = None
+
+    bounds_file, _ = _resolve_data_path(Path("overlays") / "bounds.json")
+    if bounds_file.exists():
+        try:
+            with open(bounds_file, "r", encoding="utf-8") as f:
+                bdata = json.load(f)
+                bounds = bdata.get("bounds", bounds)
+                corners = bdata.get("corners", None)
+        except Exception:
+            pass
+
+    # Discover available layer PNGs
+    layer_names = ["pre", "post", "flood", "confidence"]
+    available_layers: dict[str, str] = {}
+    missing_layers: list[str] = []
+
+    for name in layer_names:
+        png_path, _ = _resolve_data_path(Path("overlays") / f"{name}.png")
+        if png_path.exists():
+            available_layers[name] = f"/api/overlays/{name}.png"
+        else:
+            missing_layers.append(name)
+
+    if not available_layers:
+        note = "images not generated yet; run render stage or python -m backend.api.render"
+    elif "confidence" not in available_layers:
+        note = "confidence layer skipped (confidence_pixel.tif not generated yet)"
+    else:
+        note = "All raster overlay layers available"
+
     return OverlaysResponse(
         bounds=bounds,
-        note="images not generated yet",
-        layers={
-            "pre": "/api/overlays/pre.png",
-            "post": "/api/overlays/post.png",
-            "flood": "/api/overlays/flood.png",
-            "confidence": "/api/overlays/confidence.png",
-        },
+        corners=corners,
+        note=note,
+        layers=available_layers,
     )
 
 
-@app.get("/api/report", tags=["Reporting"])
-def get_report() -> Any:
-    """Retrieve the generated PDF/HTML incident report."""
-    report_pdf = config.OUTPUTS_DIR / "report.pdf"
-    report_html = config.OUTPUTS_DIR / "report.html"
+@app.get("/api/overlays/{filename}", tags=["Overlays"])
+def get_overlay_file(filename: str) -> FileResponse:
+    """Serve a rendered transparent PNG overlay or bounds.json."""
+    real_path = config.OUTPUTS_DIR / "overlays" / filename
+    demo_path = config.OUTPUTS_DIR / "demo" / "overlays" / filename
+    target = real_path if real_path.exists() else demo_path
 
-    if not report_pdf.exists() and not report_html.exists():
+    if not target.exists():
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Incident report has not been generated yet. Please run stage 6 (report generation) first.",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Overlay '{filename}' not found. Run python -m backend.api.render first.",
         )
 
-    # In future stages, this will return FileResponse(report_pdf)
-    return {"message": "Report exists"}
+    media_type = "application/json" if filename.endswith(".json") else "image/png"
+    return FileResponse(target, media_type=media_type)
+
+
+@app.get("/api/report", tags=["Reporting"])
+def get_report(format: Optional[str] = Query(None, description="Preferred format: 'pdf' or 'html'")) -> FileResponse:
+    """Retrieve the generated PDF or HTML incident report."""
+    report_pdf = config.OUTPUTS_DIR / "report.pdf"
+    demo_pdf = config.OUTPUTS_DIR / "demo" / "report.pdf"
+    report_html = config.OUTPUTS_DIR / "report.html"
+    demo_html = config.OUTPUTS_DIR / "demo" / "report.html"
+
+    target_pdf = report_pdf if report_pdf.exists() else (demo_pdf if demo_pdf.exists() else None)
+    target_html = report_html if report_html.exists() else (demo_html if demo_html.exists() else None)
+
+    fmt = (format or "").strip().lower()
+
+    if fmt == "pdf":
+        if target_pdf:
+            return FileResponse(target_pdf, media_type="application/pdf", filename="report.pdf")
+        if target_html:
+            return FileResponse(target_html, media_type="text/html", filename="report.html")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="PDF report not found. Run python -m backend.report.report first.",
+        )
+
+    if fmt == "html" or not target_pdf:
+        if target_html:
+            return FileResponse(target_html, media_type="text/html", filename="report.html")
+        if target_pdf:
+            return FileResponse(target_pdf, media_type="application/pdf", filename="report.pdf")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Incident report has not been generated yet. Run python -m backend.report.report first.",
+        )
+
+    return FileResponse(target_pdf, media_type="application/pdf", filename="report.pdf")
 
 
 # ── Mount Frontend Static Files at "/" ────────────────────────────────────────
