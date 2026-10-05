@@ -16,3 +16,4 @@ fastapi>=0.110.0
 uvicorn>=0.28.0
 pydantic>=2.6.0
 pytest>=8.0.0
+rasterstats>=0.20.0

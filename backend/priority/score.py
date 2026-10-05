@@ -148,6 +148,10 @@ def rescore(
             )
         else:
             props["tier"] = raw_tier
+            # Preserve existing reason (e.g. from confidence module) if present;
+            # otherwise set a descriptive default
+            if "reason" not in props or not props["reason"]:
+                props["reason"] = f"Priority tier {raw_tier} (rank #{rank_idx})"
 
         ranked_features.append(feat)
 
@@ -157,3 +161,62 @@ def rescore(
         return result
 
     return ranked_features
+
+
+# ---------------------------------------------------------------------------
+# CLI: python -m backend.priority.score [--weights sev,ppl,fac,rd]
+# ---------------------------------------------------------------------------
+
+def _main() -> None:
+    """Rescore zones.geojson in-place from the command line."""
+    import argparse
+    import json
+    import sys
+    from pathlib import Path
+
+    ROOT_DIR = Path(__file__).resolve().parents[2]
+    if str(ROOT_DIR) not in sys.path:
+        sys.path.insert(0, str(ROOT_DIR))
+
+    parser = argparse.ArgumentParser(description="Rescore zones.geojson")
+    parser.add_argument(
+        "--weights",
+        type=str,
+        default=None,
+        help="Comma-separated weights: severity,people,facilities,roads (e.g. 0.3,0.3,0.2,0.2)",
+    )
+    args = parser.parse_args()
+
+    zones_path = config.OUTPUTS_DIR / "zones.geojson"
+    if not zones_path.exists():
+        print(f"ERROR: {zones_path} does not exist. Run build_zones first.")
+        sys.exit(1)
+
+    with open(zones_path, "r", encoding="utf-8") as f:
+        fc = json.load(f)
+
+    weights = None
+    if args.weights:
+        parts = [float(x.strip()) for x in args.weights.split(",")]
+        if len(parts) != 4:
+            print("ERROR: --weights must have exactly 4 values")
+            sys.exit(1)
+        weights = {
+            "severity": parts[0],
+            "people": parts[1],
+            "facilities": parts[2],
+            "roads": parts[3],
+        }
+
+    scored = rescore(fc, weights)
+
+    with open(zones_path, "w", encoding="utf-8") as f:
+        json.dump(scored, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    n = len(scored.get("features", []))
+    print(f"Rescored {n} zones → {zones_path}")
+
+
+if __name__ == "__main__":
+    _main()
