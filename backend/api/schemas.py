@@ -25,18 +25,20 @@ class ZoneProperties(BaseModel):
     name: str
     flood_pct: float
     flood_km2: float
-    population: int
-    people_affected: int
+    population: float
+    people_affected: float
     facilities_hit: int
     road_cut_km: float
     confidence: str
     confidence_score: float
     reason: str
-    facilities_by_type: dict[str, int]
+    facilities_by_type: dict[str, int] = Field(default_factory=dict)
     breakdown: Breakdown
     score: float
     rank: int
     tier: str
+    zone_area_km2: Optional[float] = None
+    conf_detail: Optional[dict[str, Any]] = None
 
 
 class ZoneFeature(BaseModel):

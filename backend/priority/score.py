@@ -185,6 +185,11 @@ def _main() -> None:
         default=None,
         help="Comma-separated weights: severity,people,facilities,roads (e.g. 0.3,0.3,0.2,0.2)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force re-scoring",
+    )
     args = parser.parse_args()
 
     zones_path = config.OUTPUTS_DIR / "zones.geojson"

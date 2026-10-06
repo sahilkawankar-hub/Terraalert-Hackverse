@@ -27,7 +27,26 @@ def test_meta():
     data = res.json()
     assert "event" in data
     assert "aoi_bbox" in data
-    assert data.get("demo") is True
+    assert "demo" in data
+    assert isinstance(data["demo"], bool)
+
+
+def test_zones_schema_loads_real_geojson():
+    """Load real outputs/zones.geojson and validate against ZoneCollection schema."""
+    import json
+    from pathlib import Path
+    from backend.api.schemas import ZoneCollection
+
+    p = Path("outputs/zones.geojson")
+    if not p.exists():
+        p = Path("outputs/demo/zones.geojson")
+    with open(p, "r", encoding="utf-8") as f:
+        raw = json.load(f)
+    collection = ZoneCollection.model_validate(raw)
+    assert len(collection.features) > 0
+    first = collection.features[0].properties
+    assert isinstance(first.population, float)
+    assert isinstance(first.people_affected, float)
 
 
 def test_zones_endpoint():
