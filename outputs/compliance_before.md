@@ -1,0 +1,24 @@
+# TerraAlert — Baseline Compliance Matrix (Before Fixes)
+
+**Assessment Date:** 2026-10-06  
+**Commit:** `e19a2ef`  
+**Evaluation Standard:** AGENT_CONTEXT.md, HANDOFF.md, config.py, and Project Brief.
+
+---
+
+| Requirement / Deliverable | Status | Evidence from Real Outputs & Code Verification |
+|---|---|---|
+| **Deliverable 1: Change Detection** | **FAIL** | • `outputs/flood_classical.tif` detected 3,698 flooded pixels (1.48 km²).<br>• Verification code shows 3,698 / 3,698 (100.0%) overlap with `perm_water.tif` == 1 (Brahmaputra river channel).<br>• In `backend/detect/classical.py`, `valid = (perm_water != 255)` discarded all 1,914,205 dry land pixels as nodata.<br>• `outputs/flood_ml.tif`, `water_pre.tif`, and `water_post.tif` are 100% all-zero arrays (`np.unique` yields only `[0]`). ML inference entry point is missing from `backend/ml/`. |
+| **Deliverable 2: Affected-Area Map** | **FAIL** | • `outputs/zones.geojson` generated 41 grid cells, but they represent riverbed tiles due to upstream detection failure.<br>• Serving `/api/zones` crashes with **HTTP 500** (`pydantic_core.ValidationError: 82 validation errors for ZoneCollection`, float vs int in `schemas.py`).<br>• Raster overlays (`outputs/overlays/flood.png`) render only riverbed pixels. |
+| **Deliverable 3: Infrastructure / Area Prioritization** | **PARTIAL** | • MCDA scoring logic in `backend/priority/score.py` correctly calculates weighted sums and assigns P1 (5), P2 (6), P3 (19), VERIFY (11).<br>• However, `score.py` rejects `--force` (`unrecognized arguments: --force`), crashing `backend.run_pipeline --force`.<br>• Because flood detection is confined to the river channel, 0 facilities are hit and 0.0 km roads are cut across all zones. |
+| **Deliverable 4: Confidence Score** | **PARTIAL** | • `backend/fusion/confidence.py` calculates multi-factor heuristic (slope, time, method agreement).<br>• Every zone in `zones.geojson` contains a `confidence` label (Medium: 19, Low: 22) and human-readable `reason`.<br>• However, 0 zones achieve `High` confidence because ML consensus is impossible with all-zero ML rasters. |
+| **Deliverable 5: Incident Report** | **PARTIAL** | • `outputs/report.html` is generated with executive KPIs, satellite parameters, and top-3 priority action zones.<br>• PDF generation fails on Windows without system Cairo/Pango binaries (gracefully falls back to HTML).<br>• "Total AOI area" is misreported as 41.0 km² (sum of 41 active zones) instead of true geographic bounding box (~897 km²). |
+| **Constraint 1: True Pre/Post Comparison** | **FAIL** | • Multi-temporal difference $\Delta\sigma^0 = \text{post} - \text{pre} \le -3.0\text{ dB}$ is enforced in classical SAR, but only inside the permanent riverbed due to the land-mask bug.<br>• Sentinel-2 optical models (`backend/ml/`) were not executed on both pre- and post-event imagery to difference water masks; ML rasters were left as all zeros. |
+| **Constraint 2: Uncertainty Explanation** | **PASS** | • `LIMITATIONS.md` comprehensively documents physical radar failure modes (urban double-bounce, canopy penetration, layover/shadow, surface roughness), revisit intervals, and the `VERIFY` protocol.<br>• Every zone in `zones.geojson` includes a specific `reason` field detailing its confidence deduction factors. |
+| **Hard Rule 1: No Single-Image Classifiers** | **FAIL** | • SAR differencing exists in theory, but land was excluded.<br>• Optical ML pipeline produced no difference mask (all zeros). |
+| **Hard Rule 2: Confidence Label & Reason per Zone** | **PASS** | • All 41 zones in `outputs/zones.geojson` have `confidence` and `reason` strings. |
+| **Hard Rule 3: Numbers Computed from Data (No LLM generation)** | **PASS** | • Population, area, facilities, and roads are derived deterministically from WorldPop, SRTM, and OSM. |
+| **Hard Rule 4: Never Fabricate Data / Document Fallbacks** | **FAIL** | • `HANDOFF.md` falsely claimed "ML flood detection pipeline COMPLETE... Spatial agreement with classical SAR in clear areas: 98.88%". In reality, ML rasters were empty zeros and agreement was trivially zero vs zero.<br>• `meta.json` recorded `fallbacks.s2: "not run / skipped"` and `fallbacks.ml: "not run"`, but did not document the true empty state of the files. |
+| **Hard Rule 5: Sen1Floods11 Metrics Honesty** | **PASS** | • `meta.json` correctly disclaims AOI overlap: `"metrics": {"aoi_overlap": false}`. |
+| **Hard Rule 6: Metric CRS Area & Distance** | **PASS** | • Areas and distances are computed strictly in EPSG:32646 (meters / km²). |
+| **Intended UX: Two-Level Map Interface** | **FAIL** | • The current frontend consists of disconnected multi-page views (`index.html`, `emergency-priority-map.html`, `temporal-comparison.html`).<br>• Level 1 (regional map of Assam with event marker, summary card, and "Open event" trigger) transitioning to Level 2 (AOI focus, "Back to Assam", swipe comparison, highlight toggles) is not implemented. |
