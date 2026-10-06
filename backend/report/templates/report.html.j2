@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TerraAlert Incident Report — {{ event_name }}</title>
+  <style>
+    :root { --primary: #1a365d; --accent: #e53e3e; --border: #e2e8f0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: #2d3748; line-height: 1.6; }
+    .page { max-width: 210mm; margin: 0 auto; padding: 20mm 15mm; }
+    h1 { color: var(--primary); font-size: 22pt; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; }
+    h2 { color: var(--primary); font-size: 14pt; margin-top: 20px; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    h3 { font-size: 11pt; margin-top: 14px; margin-bottom: 6px; }
+    p, li { font-size: 10pt; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 16px 0; font-size: 9pt; }
+    th, td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+    th { background: #f7fafc; font-weight: 600; color: var(--primary); }
+    tr:nth-child(even) { background: #f7fafc; }
+    .tier-P1 { background: #fed7d7; color: #c53030; font-weight: bold; }
+    .tier-P2 { background: #fefcbf; color: #b7791f; font-weight: bold; }
+    .tier-P3 { background: #c6f6d5; color: #276749; }
+    .tier-VERIFY { background: #fbd38d; color: #9c4221; font-weight: bold; }
+    .kpi-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+    .kpi { flex: 1 1 140px; border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
+    .kpi .value { font-size: 20pt; font-weight: bold; color: var(--primary); }
+    .kpi .label { font-size: 8pt; color: #718096; text-transform: uppercase; }
+    .note { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 8px 12px; margin: 8px 0; font-size: 9pt; }
+    .warn { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 8px 12px; margin: 8px 0; font-size: 9pt; }
+    .footer { margin-top: 30px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 8pt; color: #a0aec0; text-align: center; }
+    .estimate { font-style: italic; }
+    img.map { max-width: 100%; height: auto; margin: 8px 0; border: 1px solid var(--border); }
+    ul { margin-left: 20px; }
+    @media print { .page { padding: 10mm; } }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <h1>🌊 TerraAlert Incident Report</h1>
+  <p><strong>Event:</strong> {{ event_name }}</p>
+  <p><strong>Area of Interest:</strong> {{ aoi_bbox | join(", ") }} (EPSG:4326) — <strong>Total AOI Area:</strong> {{ total_aoi_km2 }} km²</p>
+  <p><strong>Report generated:</strong> {{ generated_at }}</p>
+
+  <!-- ── Satellite & Temporal ──────────────────────────────────────── -->
+  <h2>Satellite & Temporal Information</h2>
+  <table>
+    <tr><th>Parameter</th><th>Value</th></tr>
+    <tr><td>Satellite / Instrument</td><td>{{ satellite }} / IW</td></tr>
+    <tr><td>Orbit direction</td><td>{{ pass_dir }}</td></tr>
+    <tr><td>Relative orbit</td><td>{{ relative_orbit if relative_orbit else "N/A" }}</td></tr>
+    <tr><td>Pre-event dates</td><td>{{ pre_dates | join(", ") if pre_dates else "N/A" }}</td></tr>
+    <tr><td>Post-event dates</td><td>{{ post_dates | join(", ") if post_dates else "N/A" }}</td></tr>
+    <tr><td>Time gap</td><td>{{ time_gap_days }} days</td></tr>
+    <tr><td>Total AOI area</td><td>{{ total_aoi_km2 }} km²</td></tr>
+  </table>
+
+  <!-- ── Key Figures ──────────────────────────────────────────────── -->
+  <h2>Key Impact Figures</h2>
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="value">{{ total_aoi_km2 }}</div>
+      <div class="label">Total AOI km²</div>
+    </div>
+    <div class="kpi">
+      <div class="value">{{ "%.1f" | format(total_flood_km2) }}</div>
+      <div class="label">Flooded km²</div>
+    </div>
+    <div class="kpi">
+      <div class="value">{{ total_people_affected | int | default(0) }}</div>
+      <div class="label estimate">People affected (est.)</div>
+    </div>
+    <div class="kpi">
+      <div class="value">{{ total_facilities_hit }}</div>
+      <div class="label">Facilities at risk</div>
+    </div>
+    <div class="kpi">
+      <div class="value">{{ "%.1f" | format(total_road_cut_km) }}</div>
+      <div class="label">Roads cut (km)</div>
+    </div>
+    <div class="kpi">
+      <div class="value">{{ n_zones }}</div>
+      <div class="label">Priority zones</div>
+    </div>
+  </div>
+  <p class="note"><strong>Note:</strong> "People affected" is an <em>estimate</em> derived from
+  WorldPop population count × zone flood fraction. It is not a direct count.</p>
+
+  <!-- ── Top 3 Priority Zones ──────────────────────────────────────── -->
+  <h2>🚨 Top 3 Priority Action Zones</h2>
+  <p>Urgent intervention recommended based on compound impact ranking:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Zone Name / ID</th>
+        <th>Score</th>
+        <th>Tier</th>
+        <th>Flood Area (km²)</th>
+        <th>Affected People (est.)</th>
+        <th>Blocked Roads (km)</th>
+        <th>Isolated Facilities</th>
+        <th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for z in top_3_zones %}
+      <tr>
+        <td><strong>#{{ z.rank }}</strong></td>
+        <td><strong>{{ z.name if z.name else z.zone_id }}</strong></td>
+        <td><strong>{{ "%.3f" | format(z.score) }}</strong></td>
+        <td class="tier-{{ z.tier }}">{{ z.tier }}</td>
+        <td>{{ "%.3f" | format(z.flood_km2) }}</td>
+        <td class="estimate">{{ z.people_affected | int }}</td>
+        <td>{{ "%.2f" | format(z.road_cut_km) }}</td>
+        <td>{{ z.facilities_hit }}</td>
+        <td>{{ z.confidence }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- ── Top 10 Zones ─────────────────────────────────────────────── -->
+  <h2>Priority Zones (Top 10)</h2>
+  <table>
+    <tr>
+      <th>Rank</th><th>Zone</th><th>Score</th><th>Tier</th>
+      <th>Flood %</th><th>Flood km²</th><th>People (est.)</th>
+      <th>Facilities</th><th>Road km</th><th>Confidence</th>
+    </tr>
+    {% for z in top_zones %}
+    <tr>
+      <td>{{ z.rank }}</td>
+      <td>{{ z.zone_id }}</td>
+      <td>{{ "%.3f" | format(z.score) }}</td>
+      <td class="tier-{{ z.tier }}">{{ z.tier }}</td>
+      <td>{{ "%.1f" | format(z.flood_pct) }}%</td>
+      <td>{{ "%.3f" | format(z.flood_km2) }}</td>
+      <td class="estimate">{{ z.people_affected | int }}</td>
+      <td>{{ z.facilities_hit }}</td>
+      <td>{{ "%.2f" | format(z.road_cut_km) }}</td>
+      <td>{{ z.confidence }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <!-- ── VERIFY Zones ─────────────────────────────────────────────── -->
+  {% if verify_zones %}
+  <h2>⚠ Zones Requiring Verification</h2>
+  <p>These zones scored highly but have low detection confidence and require
+  on-ground verification before committing resources.</p>
+  <table>
+    <tr><th>Zone</th><th>Tier</th><th>Score</th><th>Reason</th></tr>
+    {% for v in verify_zones %}
+    <tr>
+      <td>{{ v.zone_id }}</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>{{ "%.3f" | format(v.score) }}</td>
+      <td>{{ v.reason }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  <!-- ── Confidence Summary ───────────────────────────────────────── -->
+  <h2>Confidence Summary</h2>
+  <table>
+    <tr><th>Confidence Level</th><th>Count</th><th>Percentage</th></tr>
+    {% for c in confidence_summary %}
+    <tr>
+      <td>{{ c.level }}</td>
+      <td>{{ c.count }}</td>
+      <td>{{ "%.1f" | format(c.pct) }}%</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <!-- ── Methods ──────────────────────────────────────────────────── -->
+  <h2>Detection Methods</h2>
+  <ul>
+    <li><strong>Classical rule-based:</strong> SAR backscatter change detection
+        (post VV ≤ {{ post_db_max }} dB AND post − pre ≤ {{ diff_db_max }} dB,
+        slope ≤ {{ slope_max_deg }}°, min object {{ min_obj_px }} pixels)</li>
+    <li><strong>ML model:</strong> {{ ml_model_status }}</li>
+    <li><strong>Fusion rule:</strong> {{ fusion_rule }}</li>
+  </ul>
+
+  <!-- ── Accuracy ─────────────────────────────────────────────────── -->
+  <h2>Accuracy Assessment</h2>
+  {% if accuracy_table %}
+  <table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    {% for key, val in accuracy_table.items() %}
+    <tr><td>{{ key }}</td><td>{{ val }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="warn">Accuracy has <strong>not been evaluated</strong>. No validation
+  reference overlapping this AOI was available at the time of analysis.</p>
+  {% endif %}
+
+  <!-- ── Trap comparison image ────────────────────────────────────── -->
+  {% if trap_comparison_exists %}
+  <h2>Pre/Post Comparison (The Single-Image Trap)</h2>
+  <img src="trap_comparison.png" alt="Pre vs. Post SAR comparison" class="map">
+  <p class="note">This image illustrates why comparing pre-event and post-event imagery
+  is essential: a single post-event image cannot distinguish permanent water from new flooding.</p>
+  {% endif %}
+
+  <!-- ── Data Sources ─────────────────────────────────────────────── -->
+  <h2>Data Sources & Licences</h2>
+  <table>
+    <tr><th>Source</th><th>Licence</th></tr>
+    <tr><td>Sentinel-1 SAR (Copernicus / ESA)</td><td>Copernicus Open Access</td></tr>
+    <tr><td>Sentinel-2 MSI (Copernicus / ESA)</td><td>Copernicus Open Access</td></tr>
+    <tr><td>JRC Global Surface Water (Pekel et al.)</td><td>Copernicus Open Access</td></tr>
+    <tr><td>SRTM 30 m DEM (NASA)</td><td>Public domain</td></tr>
+    <tr><td>WorldPop UN-adjusted population count</td><td>CC-BY 4.0</td></tr>
+    <tr><td>OpenStreetMap (roads, facilities)</td><td>ODbL 1.0</td></tr>
+    <tr><td>Sen1Floods11 (Bonafilia et al.)</td><td>CC-BY 4.0</td></tr>
+    <tr><td>Prithvi EO Foundation Models (IBM/NASA)</td><td>Apache 2.0</td></tr>
+  </table>
+
+  <!-- ── Caveats & Limitations ──────────────────────────────────── -->
+  <h2>⚠️ Operational Caveats & Critical Limitations</h2>
+  <div class="warn">
+    <ul>
+      <li><strong>Synthetic Aperture Radar (SAR) Physics:</strong> Sentinel-1 C-band SAR is sensitive to smooth standing water, but exhibits limitations in dense urban zones (where building corners cause strong double-bounce reflections that mask water) and under dense forest canopies. Conversely, smooth tarmac (runways, paved highways) can mimic water backscatter.</li>
+      <li><strong>Optical Limitations:</strong> Sentinel-2 optical verification is blocked by persistent cloud cover, typical during peak monsoon flooding.</li>
+      <li><strong>Temporal Snapshot & Peak Flood Gap:</strong> The pre/post acquisition gap ({{ time_gap_days }} days) captures an instantaneous satellite pass; it does not necessarily coincide with the peak crest of the flood wave.</li>
+      <li><strong>Estimated Exposure Figures:</strong> "People affected" figures are statistical approximations calculated by intersecting gridded WorldPop estimates with flooded surface fractions; they are not direct headcounts or verified field counts.</li>
+      <li><strong>Infrastructure Network Completeness:</strong> Road cuts and critical facility hit counts are subject to OpenStreetMap data completeness in this AOI. Unmapped rural roads and clinics are not reflected in these scores.</li>
+      <li><strong>Decision Protocol:</strong> Zones marked as <code>VERIFY</code> exhibit high compound risk scores but low detection confidence; response teams should deploy ground scouts or drone reconnaissance before dispatching heavy equipment.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    TerraAlert v0.1.0 — Automated flood change detection and priority mapping.<br>
+    Generated {{ generated_at }}. All numbers computed from data; no LLM-generated figures.
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TerraAlert Incident Report — Assam Floods, June 2022 (Barpeta-Nalbari, Brahmaputra north bank)</title>
+  <style>
+    :root { --primary: #1a365d; --accent: #e53e3e; --border: #e2e8f0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: #2d3748; line-height: 1.6; }
+    .page { max-width: 210mm; margin: 0 auto; padding: 20mm 15mm; }
+    h1 { color: var(--primary); font-size: 22pt; border-bottom: 3px solid var(--accent); padding-bottom: 8px; margin-bottom: 12px; }
+    h2 { color: var(--primary); font-size: 14pt; margin-top: 20px; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    h3 { font-size: 11pt; margin-top: 14px; margin-bottom: 6px; }
+    p, li { font-size: 10pt; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 16px 0; font-size: 9pt; }
+    th, td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+    th { background: #f7fafc; font-weight: 600; color: var(--primary); }
+    tr:nth-child(even) { background: #f7fafc; }
+    .tier-P1 { background: #fed7d7; color: #c53030; font-weight: bold; }
+    .tier-P2 { background: #fefcbf; color: #b7791f; font-weight: bold; }
+    .tier-P3 { background: #c6f6d5; color: #276749; }
+    .tier-VERIFY { background: #fbd38d; color: #9c4221; font-weight: bold; }
+    .kpi-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+    .kpi { flex: 1 1 140px; border: 1px solid var(--border); border-radius: 6px; padding: 10px; text-align: center; }
+    .kpi .value { font-size: 20pt; font-weight: bold; color: var(--primary); }
+    .kpi .label { font-size: 8pt; color: #718096; text-transform: uppercase; }
+    .note { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 8px 12px; margin: 8px 0; font-size: 9pt; }
+    .warn { background: #fffbeb; border-left: 4px solid #d69e2e; padding: 8px 12px; margin: 8px 0; font-size: 9pt; }
+    .footer { margin-top: 30px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 8pt; color: #a0aec0; text-align: center; }
+    .estimate { font-style: italic; }
+    img.map { max-width: 100%; height: auto; margin: 8px 0; border: 1px solid var(--border); }
+    ul { margin-left: 20px; }
+    @media print { .page { padding: 10mm; } }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <h1>🌊 TerraAlert Incident Report</h1>
+  <p><strong>Event:</strong> Assam Floods, June 2022 (Barpeta-Nalbari, Brahmaputra north bank)</p>
+  <p><strong>Area of Interest:</strong> 90.95, 26.1, 91.25, 26.37 (EPSG:4326) — <strong>Total AOI Area:</strong> 20.0 km²</p>
+  <p><strong>Report generated:</strong> 2026-10-05 21:44 UTC</p>
+
+  <!-- ── Satellite & Temporal ──────────────────────────────────────── -->
+  <h2>Satellite & Temporal Information</h2>
+  <table>
+    <tr><th>Parameter</th><th>Value</th></tr>
+    <tr><td>Satellite / Instrument</td><td>Sentinel-1A / IW</td></tr>
+    <tr><td>Orbit direction</td><td>DESCENDING</td></tr>
+    <tr><td>Relative orbit</td><td>150</td></tr>
+    <tr><td>Pre-event dates</td><td>2022-05-06</td></tr>
+    <tr><td>Post-event dates</td><td>2022-06-23</td></tr>
+    <tr><td>Time gap</td><td>48 days</td></tr>
+    <tr><td>Total AOI area</td><td>20.0 km²</td></tr>
+  </table>
+
+  <!-- ── Key Figures ──────────────────────────────────────────────── -->
+  <h2>Key Impact Figures</h2>
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="value">20.0</div>
+      <div class="label">Total AOI km²</div>
+    </div>
+    <div class="kpi">
+      <div class="value">255.3</div>
+      <div class="label">Flooded km²</div>
+    </div>
+    <div class="kpi">
+      <div class="value">42452</div>
+      <div class="label estimate">People affected (est.)</div>
+    </div>
+    <div class="kpi">
+      <div class="value">12</div>
+      <div class="label">Facilities at risk</div>
+    </div>
+    <div class="kpi">
+      <div class="value">50.0</div>
+      <div class="label">Roads cut (km)</div>
+    </div>
+    <div class="kpi">
+      <div class="value">20</div>
+      <div class="label">Priority zones</div>
+    </div>
+  </div>
+  <p class="note"><strong>Note:</strong> "People affected" is an <em>estimate</em> derived from
+  WorldPop population count × zone flood fraction. It is not a direct count.</p>
+
+  <!-- ── Top 3 Priority Zones ──────────────────────────────────────── -->
+  <h2>🚨 Top 3 Priority Action Zones</h2>
+  <p>Urgent intervention recommended based on compound impact ranking:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Zone Name / ID</th>
+        <th>Score</th>
+        <th>Tier</th>
+        <th>Flood Area (km²)</th>
+        <th>Affected People (est.)</th>
+        <th>Blocked Roads (km)</th>
+        <th>Isolated Facilities</th>
+        <th>Confidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr>
+        <td><strong>#1</strong></td>
+        <td><strong>Barpeta Sector 4-3</strong></td>
+        <td><strong>0.885</strong></td>
+        <td class="tier-VERIFY">VERIFY</td>
+        <td>31.860</td>
+        <td class="estimate">10983</td>
+        <td>5.26</td>
+        <td>1</td>
+        <td>Low</td>
+      </tr>
+      
+      <tr>
+        <td><strong>#2</strong></td>
+        <td><strong>Barpeta Sector 4-1</strong></td>
+        <td><strong>0.702</strong></td>
+        <td class="tier-P1">P1</td>
+        <td>19.970</td>
+        <td class="estimate">4909</td>
+        <td>5.12</td>
+        <td>2</td>
+        <td>High</td>
+      </tr>
+      
+      <tr>
+        <td><strong>#3</strong></td>
+        <td><strong>Barpeta Sector 1-3</strong></td>
+        <td><strong>0.619</strong></td>
+        <td class="tier-P1">P1</td>
+        <td>17.410</td>
+        <td class="estimate">2001</td>
+        <td>5.70</td>
+        <td>2</td>
+        <td>Medium</td>
+      </tr>
+      
+    </tbody>
+  </table>
+
+  <!-- ── Top 10 Zones ─────────────────────────────────────────────── -->
+  <h2>Priority Zones (Top 10)</h2>
+  <table>
+    <tr>
+      <th>Rank</th><th>Zone</th><th>Score</th><th>Tier</th>
+      <th>Flood %</th><th>Flood km²</th><th>People (est.)</th>
+      <th>Facilities</th><th>Road km</th><th>Confidence</th>
+    </tr>
+    
+    <tr>
+      <td>1</td>
+      <td>ZONE-14</td>
+      <td>0.885</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>71.0%</td>
+      <td>31.860</td>
+      <td class="estimate">10983</td>
+      <td>1</td>
+      <td>5.26</td>
+      <td>Low</td>
+    </tr>
+    
+    <tr>
+      <td>2</td>
+      <td>ZONE-04</td>
+      <td>0.702</td>
+      <td class="tier-P1">P1</td>
+      <td>44.5%</td>
+      <td>19.970</td>
+      <td class="estimate">4909</td>
+      <td>2</td>
+      <td>5.12</td>
+      <td>High</td>
+    </tr>
+    
+    <tr>
+      <td>3</td>
+      <td>ZONE-11</td>
+      <td>0.619</td>
+      <td class="tier-P1">P1</td>
+      <td>38.8%</td>
+      <td>17.410</td>
+      <td class="estimate">2001</td>
+      <td>2</td>
+      <td>5.70</td>
+      <td>Medium</td>
+    </tr>
+    
+    <tr>
+      <td>4</td>
+      <td>ZONE-18</td>
+      <td>0.529</td>
+      <td class="tier-P1">P1</td>
+      <td>44.4%</td>
+      <td>19.920</td>
+      <td class="estimate">1988</td>
+      <td>1</td>
+      <td>5.34</td>
+      <td>Medium</td>
+    </tr>
+    
+    <tr>
+      <td>5</td>
+      <td>ZONE-09</td>
+      <td>0.478</td>
+      <td class="tier-P2">P2</td>
+      <td>32.8%</td>
+      <td>14.720</td>
+      <td class="estimate">4840</td>
+      <td>1</td>
+      <td>3.05</td>
+      <td>High</td>
+    </tr>
+    
+    <tr>
+      <td>6</td>
+      <td>ZONE-03</td>
+      <td>0.475</td>
+      <td class="tier-P2">P2</td>
+      <td>48.8%</td>
+      <td>21.900</td>
+      <td class="estimate">2710</td>
+      <td>1</td>
+      <td>2.71</td>
+      <td>Medium</td>
+    </tr>
+    
+    <tr>
+      <td>7</td>
+      <td>ZONE-08</td>
+      <td>0.441</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>44.2%</td>
+      <td>19.830</td>
+      <td class="estimate">1283</td>
+      <td>1</td>
+      <td>3.39</td>
+      <td>Low</td>
+    </tr>
+    
+    <tr>
+      <td>8</td>
+      <td>ZONE-16</td>
+      <td>0.426</td>
+      <td class="tier-P2">P2</td>
+      <td>15.8%</td>
+      <td>7.090</td>
+      <td class="estimate">1206</td>
+      <td>2</td>
+      <td>3.59</td>
+      <td>Medium</td>
+    </tr>
+    
+    <tr>
+      <td>9</td>
+      <td>ZONE-07</td>
+      <td>0.422</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>44.6%</td>
+      <td>20.010</td>
+      <td class="estimate">2385</td>
+      <td>0</td>
+      <td>4.79</td>
+      <td>Low</td>
+    </tr>
+    
+    <tr>
+      <td>10</td>
+      <td>ZONE-12</td>
+      <td>0.357</td>
+      <td class="tier-P2">P2</td>
+      <td>56.7%</td>
+      <td>25.440</td>
+      <td class="estimate">3162</td>
+      <td>0</td>
+      <td>0.88</td>
+      <td>Medium</td>
+    </tr>
+    
+  </table>
+
+  <!-- ── VERIFY Zones ─────────────────────────────────────────────── -->
+  
+  <h2>⚠ Zones Requiring Verification</h2>
+  <p>These zones scored highly but have low detection confidence and require
+  on-ground verification before committing resources.</p>
+  <table>
+    <tr><th>Zone</th><th>Tier</th><th>Score</th><th>Reason</th></tr>
+    
+    <tr>
+      <td>ZONE-14</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>0.885</td>
+      <td>Flagged for on-ground verification: High impact (P1) with Low detection confidence</td>
+    </tr>
+    
+    <tr>
+      <td>ZONE-08</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>0.441</td>
+      <td>Flagged for on-ground verification: High impact (P2) with Low detection confidence</td>
+    </tr>
+    
+    <tr>
+      <td>ZONE-07</td>
+      <td class="tier-VERIFY">VERIFY</td>
+      <td>0.422</td>
+      <td>Flagged for on-ground verification: High impact (P2) with Low detection confidence</td>
+    </tr>
+    
+  </table>
+  
+
+  <!-- ── Confidence Summary ───────────────────────────────────────── -->
+  <h2>Confidence Summary</h2>
+  <table>
+    <tr><th>Confidence Level</th><th>Count</th><th>Percentage</th></tr>
+    
+    <tr>
+      <td>High</td>
+      <td>4</td>
+      <td>20.0%</td>
+    </tr>
+    
+    <tr>
+      <td>Low</td>
+      <td>5</td>
+      <td>25.0%</td>
+    </tr>
+    
+    <tr>
+      <td>Medium</td>
+      <td>11</td>
+      <td>55.0%</td>
+    </tr>
+    
+  </table>
+
+  <!-- ── Methods ──────────────────────────────────────────────────── -->
+  <h2>Detection Methods</h2>
+  <ul>
+    <li><strong>Classical rule-based:</strong> SAR backscatter change detection
+        (post VV ≤ -18.0 dB AND post − pre ≤ -3.0 dB,
+        slope ≤ 5.0°, min object 25 pixels)</li>
+    <li><strong>ML model:</strong> Not run (not run)</li>
+    <li><strong>Fusion rule:</strong> classical_plus_ml</li>
+  </ul>
+
+  <!-- ── Accuracy ─────────────────────────────────────────────────── -->
+  <h2>Accuracy Assessment</h2>
+  
+  <p class="warn">Accuracy has <strong>not been evaluated</strong>. No validation
+  reference overlapping this AOI was available at the time of analysis.</p>
+  
+
+  <!-- ── Trap comparison image ────────────────────────────────────── -->
+  
+
+  <!-- ── Data Sources ─────────────────────────────────────────────── -->
+  <h2>Data Sources & Licences</h2>
+  <table>
+    <tr><th>Source</th><th>Licence</th></tr>
+    <tr><td>Sentinel-1 SAR (Copernicus / ESA)</td><td>Copernicus Open Access</td></tr>
+    <tr><td>Sentinel-2 MSI (Copernicus / ESA)</td><td>Copernicus Open Access</td></tr>
+    <tr><td>JRC Global Surface Water (Pekel et al.)</td><td>Copernicus Open Access</td></tr>
+    <tr><td>SRTM 30 m DEM (NASA)</td><td>Public domain</td></tr>
+    <tr><td>WorldPop UN-adjusted population count</td><td>CC-BY 4.0</td></tr>
+    <tr><td>OpenStreetMap (roads, facilities)</td><td>ODbL 1.0</td></tr>
+    <tr><td>Sen1Floods11 (Bonafilia et al.)</td><td>CC-BY 4.0</td></tr>
+    <tr><td>Prithvi EO Foundation Models (IBM/NASA)</td><td>Apache 2.0</td></tr>
+  </table>
+
+  <!-- ── Caveats & Limitations ──────────────────────────────────── -->
+  <h2>⚠️ Operational Caveats & Critical Limitations</h2>
+  <div class="warn">
+    <ul>
+      <li><strong>Synthetic Aperture Radar (SAR) Physics:</strong> Sentinel-1 C-band SAR is sensitive to smooth standing water, but exhibits limitations in dense urban zones (where building corners cause strong double-bounce reflections that mask water) and under dense forest canopies. Conversely, smooth tarmac (runways, paved highways) can mimic water backscatter.</li>
+      <li><strong>Optical Limitations:</strong> Sentinel-2 optical verification is blocked by persistent cloud cover, typical during peak monsoon flooding.</li>
+      <li><strong>Temporal Snapshot & Peak Flood Gap:</strong> The pre/post acquisition gap (48 days) captures an instantaneous satellite pass; it does not necessarily coincide with the peak crest of the flood wave.</li>
+      <li><strong>Estimated Exposure Figures:</strong> "People affected" figures are statistical approximations calculated by intersecting gridded WorldPop estimates with flooded surface fractions; they are not direct headcounts or verified field counts.</li>
+      <li><strong>Infrastructure Network Completeness:</strong> Road cuts and critical facility hit counts are subject to OpenStreetMap data completeness in this AOI. Unmapped rural roads and clinics are not reflected in these scores.</li>
+      <li><strong>Decision Protocol:</strong> Zones marked as <code>VERIFY</code> exhibit high compound risk scores but low detection confidence; response teams should deploy ground scouts or drone reconnaissance before dispatching heavy equipment.</li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    TerraAlert v0.1.0 — Automated flood change detection and priority mapping.<br>
+    Generated 2026-10-05 21:44 UTC. All numbers computed from data; no LLM-generated figures.
+  </div>
+
+</div>
+</body>
+</html>

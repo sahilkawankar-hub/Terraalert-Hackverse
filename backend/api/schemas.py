@@ -67,6 +67,7 @@ class RescoreRequest(BaseModel):
 
 class OverlaysResponse(BaseModel):
     bounds: list[float] = Field(..., description="[west, south, east, north] in EPSG:4326")
+    corners: Optional[list[list[float]]] = Field(None, description="Four corner coordinates for MapLibre: [top-left, top-right, bottom-right, bottom-left]")
     note: str = "images not generated yet"
     layers: dict[str, str] = Field(default_factory=dict)
 
