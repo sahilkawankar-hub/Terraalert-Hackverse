@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Analysis - TerraAlert GEOINT Command</title>
+  <meta name="description" content="Create a new disaster analysis with multi-temporal satellite passes and automated change-detection pipelines."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-deep:#060a12; --bg-base:#0a0f1e; --bg-surface:#0d1525;
+      --bg-card:#111827; --bg-card-alt:#0f1720; --bg-hover:#1a2540; --bg-input:#0c1422;
+      --border:rgba(56,165,248,0.12); --border-bright:rgba(56,165,248,0.28);
+      --border-input:rgba(56,165,248,0.2); --accent:#38a5f8; --accent-dim:rgba(56,165,248,0.08);
+      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
+      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
+      --red:#ef4444; --red-dim:rgba(239,68,68,0.12);
+      --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.12);
+      --text:#e2e8f0; --text-muted:#64748b; --text-dim:#94a3b8;
+      --sidebar-w:192px; --topbar-h:44px;
+      --font:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    }
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:var(--font);background:var(--bg-deep);color:var(--text);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px;}
+
+    /* TOPBAR */
+    #topbar{height:var(--topbar-h);background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;flex-shrink:0;z-index:500;}
+    .topbar-brand{display:flex;align-items:center;gap:10px;width:var(--sidebar-w);flex-shrink:0;}
+    .brand-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#1e40af,#38a5f8);display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .brand-text{display:flex;flex-direction:column;line-height:1.1;}
+    .brand-name{font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;}
+    .brand-sub{font-size:9px;font-weight:500;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
+    .brand-version{font-size:9px;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);}
+    .topbar-center{flex:1;display:flex;align-items:center;gap:14px;padding:0 16px;overflow:hidden;}
+    .event-status{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);white-space:nowrap;}
+    .event-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber);animation:pulse-amb 2s ease-in-out infinite;flex-shrink:0;}
+    @keyframes pulse-amb{0%,100%{opacity:1}50%{opacity:.4}}
+    .top-chip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:3px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;cursor:default;white-space:nowrap;}
+    .top-chip.ready{border-color:rgba(34,197,94,.35);color:var(--green);}
+    .top-chip.syncing{border-color:rgba(56,165,248,.35);color:var(--accent);}
+    .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+    .icon-btn{width:30px;height:30px;border-radius:5px;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:13px;position:relative;transition:all .2s;}
+    .icon-btn:hover{background:var(--bg-hover);border-color:var(--border-bright);color:var(--text);}
+    .notif-badge{position:absolute;top:-4px;right:-4px;width:15px;height:15px;background:var(--amber);border-radius:50%;font-size:8px;font-weight:700;color:#000;display:flex;align-items:center;justify-content:center;}
+    .user-pill{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:4px 10px;cursor:pointer;transition:border-color .2s;}
+    .user-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#38a5f8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
+    .user-info{display:flex;flex-direction:column;line-height:1.1;}
+    .user-name{font-size:11px;font-weight:600;color:var(--text);}
+    .user-role{font-size:9px;color:var(--text-muted);letter-spacing:.5px;}
+
+    /* LAYOUT */
+    #layout{flex:1;display:flex;overflow:hidden;}
+
+    /* SIDEBAR */
+    #sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:8px 0;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:var(--text-muted);font-size:12px;font-weight:500;letter-spacing:.3px;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
+    .nav-item:hover{color:var(--text);background:var(--accent-dim);}
+    .nav-item.active{color:var(--accent);background:var(--accent-dim);border-left-color:var(--accent);}
+    .nav-icon{width:16px;text-align:center;font-size:13px;flex-shrink:0;}
+    .nav-badge{margin-left:auto;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+    .nav-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
+    .nav-section{padding:12px 14px 4px;font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:1.2px;text-transform:uppercase;}
+
+    /* MAIN */
+    #main{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg-base);}
+
+    /* PAGE HEADER */
+    #page-header{padding:12px 18px 0;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg-surface);}
+    .breadcrumb{display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--text-muted);margin-bottom:8px;}
+    .breadcrumb a{color:var(--text-muted);text-decoration:none;}
+    .breadcrumb a:hover{color:var(--accent);}
+    .bc-sep{opacity:.5;}
+    .bc-current{color:var(--accent);font-weight:600;font-family:var(--mono);}
+    .page-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px;}
+    .page-title-left{display:flex;align-items:center;gap:12px;}
+    .page-title-left h1{font-size:20px;font-weight:700;letter-spacing:-.3px;color:var(--text);}
+    .sar-badge{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.4);border-radius:3px;padding:2px 8px;}
+    .page-title-right{display:flex;align-items:center;gap:8px;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:5px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:var(--font);letter-spacing:.2px;}
+    .btn-ghost{background:var(--bg-card);border-color:var(--border);color:var(--text-dim);}
+    .btn-ghost:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-hover);}
+    .btn-accent{background:rgba(56,165,248,.12);border-color:var(--border-bright);color:var(--accent);}
+    .btn-accent:hover{background:rgba(56,165,248,.2);}
+    .btn-run{background:linear-gradient(135deg,#1d4ed8,#7c3aed);border-color:rgba(124,58,237,.4);color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;padding:10px 20px;animation:glow-run 3s ease-in-out infinite;}
+    .btn-run:hover{background:linear-gradient(135deg,#1e40af,#6d28d9);}
+    @keyframes glow-run{0%,100%{box-shadow:0 2px 12px rgba(124,58,237,.35)}50%{box-shadow:0 4px 24px rgba(124,58,237,.65)}}
+    .btn-sim{background:var(--bg-card);border-color:var(--border-bright);color:var(--accent);font-size:11px;font-weight:700;padding:10px 14px;}
+    .btn-sim:hover{background:var(--bg-hover);}
+
+    /* WIZARD TABS */
+    #wizard-tabs{display:flex;align-items:stretch;border-top:1px solid var(--border);background:var(--bg-surface);flex-shrink:0;}
+    .wtab{display:flex;align-items:center;gap:8px;padding:0 16px;height:38px;cursor:pointer;border-right:1px solid var(--border);font-size:10px;font-weight:600;color:var(--text-muted);letter-spacing:.4px;text-transform:uppercase;transition:all .15s;position:relative;user-select:none;}
+    .wtab:hover{color:var(--text);background:var(--bg-hover);}
+    .wtab.active{color:var(--accent);background:rgba(56,165,248,.07);}
+    .wtab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);}
+    .wtab.done{color:var(--green);}
+    .wtab.done::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--green);}
+    .wnum{font-size:9px;font-weight:700;font-family:var(--mono);background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:1px 5px;line-height:1.4;}
+    .wtab.active .wnum{background:rgba(56,165,248,.15);border-color:var(--border-bright);color:var(--accent);}
+    .wtab.done .wnum{background:var(--green-dim);border-color:rgba(34,197,94,.35);color:var(--green);}
+    .wtab-sub{font-size:9px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;}
+
+    /* CONTENT */
+    #content{flex:1;overflow:hidden;display:grid;grid-template-columns:1fr 288px;}
+    #left-panel{overflow-y:auto;padding:16px 14px 20px 18px;display:flex;flex-direction:column;gap:14px;border-right:1px solid var(--border);}
+    #right-panel{overflow-y:auto;padding:16px 18px 20px 14px;display:flex;flex-direction:column;gap:14px;}
+
+    /* STEP CARDS */
+    .step-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+    .step-card.active-step{border-color:var(--border-bright);box-shadow:0 0 0 1px rgba(56,165,248,.08);}
+    .step-header{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-card-alt);}
+    .step-num-badge{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:var(--accent-dim);border:1px solid var(--border-bright);font-size:10px;font-weight:700;font-family:var(--mono);color:var(--accent);flex-shrink:0;}
+    .step-title{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text);flex:1;}
+    .step-pill{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:3px;}
+    .pill-geo{background:rgba(56,165,248,.12);color:var(--accent);border:1px solid rgba(56,165,248,.3);}
+    .pill-await{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);}
+    .pill-pending{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);}
+    .step-body{padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+    /* FORM */
+    .form-group{display:flex;flex-direction:column;gap:5px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .form-label{font-size:9.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:6px;}
+    .req-mark{color:var(--red);font-size:9px;}
+    .form-input{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;padding:8px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);transition:all .2s;outline:none;}
+    .form-input::placeholder{color:var(--text-muted);font-style:italic;}
+    .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,165,248,.1);}
+    .form-select{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;padding:8px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:calc(100% - 10px) center;transition:all .2s;}
+    .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,165,248,.1);}
+    .form-textarea{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;padding:8px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);resize:vertical;min-height:72px;outline:none;transition:all .2s;line-height:1.5;}
+    .form-textarea::placeholder{color:var(--text-muted);font-style:italic;}
+    .form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,165,248,.1);}
+
+    /* DISASTER BUTTONS */
+    .disaster-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+    .disaster-btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border-radius:5px;border:1px solid var(--border);background:var(--bg-input);cursor:pointer;font-size:10px;font-weight:600;color:var(--text-muted);transition:all .15s;font-family:var(--font);}
+    .disaster-btn:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-hover);}
+    .sel-flood{border-color:rgba(56,165,248,.5)!important;background:rgba(56,165,248,.1)!important;color:var(--accent)!important;}
+    .sel-cyclone{border-color:rgba(167,139,250,.5)!important;background:rgba(167,139,250,.1)!important;color:var(--purple)!important;}
+    .sel-landslide{border-color:rgba(245,158,11,.5)!important;background:rgba(245,158,11,.1)!important;color:var(--amber)!important;}
+    .sel-wildfire{border-color:rgba(239,68,68,.5)!important;background:rgba(239,68,68,.1)!important;color:var(--red)!important;}
+
+    /* AOI */
+    .no-boundary-pill{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;color:var(--green);background:var(--green-dim);border:1px solid rgba(34,197,94,.35);border-radius:3px;padding:3px 8px;}
+    .nb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+    .search-box{display:flex;align-items:center;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;overflow:hidden;}
+    .search-box input{flex:1;background:transparent;border:none;padding:7px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);outline:none;}
+    .search-box input::placeholder{color:var(--text-muted);font-style:italic;}
+    .search-icon{padding:0 10px;color:var(--text-muted);font-size:12px;flex-shrink:0;}
+    .map-tools{display:flex;align-items:center;gap:6px;}
+    .map-tool-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card-alt);color:var(--text-muted);transition:all .15s;font-family:var(--font);}
+    .map-tool-btn:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-hover);}
+    .map-tool-btn.draw{border-color:rgba(56,165,248,.4);color:var(--accent);background:rgba(56,165,248,.08);}
+    #map{width:100%;height:220px;border-radius:6px;border:1px solid var(--border);overflow:hidden;background:#0a1628;}
+    .aoi-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+    .aoi-stat{background:var(--bg-card-alt);border:1px solid var(--border);border-radius:5px;padding:8px 10px;}
+    .aoi-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:4px;}
+    .aoi-stat-val{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text-muted);}
+    .aoi-stat-val.has-val{color:var(--accent);}
+
+    /* TEMPORAL */
+    .temporal-pairing{display:flex;align-items:center;justify-content:space-between;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:5px;padding:8px 12px;}
+    .tp-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:var(--accent);}
+    .tp-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--amber);background:var(--amber-dim);border:1px solid rgba(245,158,11,.3);border-radius:3px;padding:2px 7px;}
+    .temporal-pass{background:var(--bg-card-alt);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+    .tp-header{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);}
+    .tp-badge{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--accent);background:var(--accent-dim);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;}
+    .tp-badge.post{color:var(--purple);background:var(--purple-dim);border-color:rgba(167,139,250,.3);}
+    .tp-aw{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);}
+    .tp-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+    .tp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .tp-field{display:flex;flex-direction:column;gap:3px;}
+    .tp-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);}
+    .tp-val{font-size:11px;color:var(--text-dim);}
+    .tp-val.aw{color:var(--text-muted);font-style:italic;}
+    .tp-date{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:4px;padding:5px 8px;font-size:11px;color:var(--text);font-family:var(--font);outline:none;}
+    .tp-date:focus{border-color:var(--accent);}
+    .tp-sat{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:4px;padding:5px 8px;font-size:11px;color:var(--text);font-family:var(--font);outline:none;appearance:none;}
+    .tp-divider{display:flex;align-items:center;gap:8px;padding:4px 0;}
+    .tp-divider-line{flex:1;height:1px;background:var(--border);}
+    .tp-divider-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;cursor:pointer;}
+    .tp-note{display:flex;align-items:flex-start;gap:7px;padding:8px 10px;background:rgba(56,165,248,.05);border:1px solid rgba(56,165,248,.12);border-radius:5px;}
+    .tp-note-icon{color:var(--accent);font-size:12px;flex-shrink:0;margin-top:1px;}
+    .tp-note-text{font-size:10px;color:var(--text-muted);line-height:1.5;}
+
+    /* REVIEW */
+    .review-body{padding:12px 14px;display:flex;flex-direction:column;}
+    .review-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .review-row:last-child{border-bottom:none;}
+    .review-key{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);}
+    .review-val{font-size:11px;font-family:var(--mono);color:var(--text-muted);}
+    .review-val.set{color:var(--text);font-weight:600;}
+    .auto-notify{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:5px;margin:0 14px 12px;}
+    .an-cb{width:14px;height:14px;border-radius:3px;border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;cursor:pointer;}
+    .an-check{color:var(--red);font-size:10px;font-weight:700;}
+    .an-text{display:flex;flex-direction:column;gap:2px;}
+    .an-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--red);}
+    .an-desc{font-size:9.5px;color:var(--text-muted);line-height:1.4;}
+    .review-actions{display:flex;gap:8px;padding:0 14px 14px;}
+
+    /* LEAFLET */
+    .leaflet-container{background:#0a1628!important;}
+    .leaflet-tile-pane{filter:brightness(.8) saturate(.6);}
+    .leaflet-control-zoom a{background:var(--bg-card)!important;border-color:var(--border)!important;color:var(--text-dim)!important;}
+    .leaflet-control-attribution{display:none!important;}
+    .leaflet-bar{border:1px solid var(--border)!important;border-radius:5px!important;overflow:hidden;}
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">&#128752;</div>
+    <div class="brand-text">
+      <span class="brand-name">TerraAlert</span>
+      <span class="brand-sub">GEOINT Command</span>
+    </div>
+    <span class="brand-version">v1.0</span>
+  </div>
+  <div class="topbar-center">
+    <div class="event-status">
+      <span class="event-dot"></span>
+      CURRENT ACTIVE EVENT:&nbsp;<strong style="color:var(--amber)">ASSAM FLOODS &middot; JUN 2022</strong>
+    </div>
+    <div class="top-chip syncing">S-1A / S-1B STANDBY</div>
+    <div class="top-chip ready">CHANGE DETECTION: READY</div>
+  </div>
+  <div class="topbar-right">
+    <div class="icon-btn">&#128276;<div class="notif-badge">3</div></div>
+    <div class="icon-btn">&#9881;</div>
+    <div class="user-pill">
+      <div class="user-avatar">OPS</div>
+      <div class="user-info">
+        <span class="user-name">Ops Analyst</span>
+        <span class="user-role">GIS-OPS &middot; CMD-L1</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div id="layout">
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <a href="index.html" class="nav-item"><span class="nav-icon">&#9638;</span>Dashboard</a>
+    <a href="#" class="nav-item active"><span class="nav-icon">&#10022;</span>New Analysis</a>
+    <a href="ai-change-detection.html" class="nav-item"><span class="nav-icon">&#9650;</span>AI Change Detection</a>
+    <a href="temporal-comparison.html" class="nav-item"><span class="nav-icon">&#9741;</span>Temporal Compare</a>
+    <a href="spatial-confidence.html" class="nav-item"><span class="nav-icon">&#128737;</span>Spatial Confidence</a>
+    <a href="emergency-priority-map.html" class="nav-item"><span class="nav-icon">&#128506;</span>Priority Map</a>
+    <a href="impact-analysis.html" class="nav-item"><span class="nav-icon">&#9741;</span>Impact Analysis</a>
+    <a href="#" class="nav-item"><span class="nav-icon">&#9889;</span>Events<span class="nav-badge">6</span></a>
+    <a href="reports.html" class="nav-item"><span class="nav-icon">&#128196;</span>Reports</a>
+    <a href="#" class="nav-item"><span class="nav-icon">&#128225;</span>Data Sources<span class="nav-dot"></span></a>
+    <div class="nav-section">System</div>
+    <a href="/docs" class="nav-item" target="_blank"><span class="nav-icon">&#128268;</span>API Docs</a>
+    <a href="#" class="nav-item"><span class="nav-icon">&#9881;</span>Settings</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="main">
+    <!-- PAGE HEADER -->
+    <div id="page-header">
+      <div class="breadcrumb">
+        <a href="index.html">Pipelines</a><span class="bc-sep">&nbsp;/&nbsp;</span>
+        <a href="#">Analysis Wizard</a><span class="bc-sep">&nbsp;/&nbsp;</span>
+        <span class="bc-current">TASK-78829-SAR</span>
+      </div>
+      <div class="page-title-row">
+        <div class="page-title-left">
+          <h1>Create Disaster Analysis</h1>
+          <span class="sar-badge">&#9679; SAR-ENGINE READY</span>
+        </div>
+        <div class="page-title-right">
+          <button class="btn btn-ghost">&#128190; Save Analysis Draft</button>
+          <button class="btn btn-accent">&#9881; Pipeline Presets: SAR Rapid Flood</button>
+        </div>
+      </div>
+      <!-- WIZARD TABS -->
+      <div id="wizard-tabs">
+        <div class="wtab done" onclick="switchTab(1)">
+          <span class="wnum">01</span>Config<span class="wtab-sub">Event Specification</span>
+        </div>
+        <div class="wtab active" onclick="switchTab(2)">
+          <span class="wnum">02</span>Bounds<span class="wtab-sub">Affected Region (AOI)</span>
+        </div>
+        <div class="wtab" onclick="switchTab(3)">
+          <span class="wnum">03</span>Temporal Pair<span class="wtab-sub">Satellite Passes</span>
+        </div>
+        <div class="wtab" onclick="switchTab(4)">
+          <span class="wnum">04</span>Execution<span class="wtab-sub">Review &amp; Launch</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+      <!-- LEFT PANEL -->
+      <div id="left-panel">
+
+        <!-- STEP 01 -->
+        <div class="step-card active-step">
+          <div class="step-header">
+            <div class="step-num-badge">01</div>
+            <span class="step-title">Step 01 &mdash; Event Specification</span>
+            <span class="step-pill pill-geo">GEO-INCIDENT</span>
+            <span style="font-size:9px;color:var(--text-muted);margin-left:4px;">// NEW</span>
+          </div>
+          <div class="step-body">
+            <div class="form-group">
+              <label class="form-label">Event Identifier / Name <span class="req-mark">* REQUIRED</span></label>
+              <input id="event-name" class="form-input" type="text"
+                placeholder="Enter event name (e.g. Coastal Monsoon Surge)"
+                value="Assam Floods, June 2022 (Barpeta-Nalbari)"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Disaster Classification</label>
+              <div class="disaster-grid">
+                <button class="disaster-btn sel-flood" onclick="selectDisaster(this,'flood')">&#128167; Flood</button>
+                <button class="disaster-btn" onclick="selectDisaster(this,'cyclone')">&#127744; Cyclone</button>
+                <button class="disaster-btn" onclick="selectDisaster(this,'landslide')">&#127960; Landslide</button>
+                <button class="disaster-btn" onclick="selectDisaster(this,'wildfire')">&#128293; Wildfire</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Administrative Domain / Location</label>
+                <input class="form-input" type="text" id="admin-domain"
+                  placeholder="Enter region, district or administrative domain"
+                  value="Barpeta, Nalbari - Assam, India"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Operational Severity</label>
+                <select class="form-select" id="severity">
+                  <option value="">Select severity level</option>
+                  <option value="critical" selected>Critical - Life-threatening</option>
+                  <option value="high">High - Major impact</option>
+                  <option value="medium">Medium - Moderate impact</option>
+                  <option value="low">Low - Minor impact</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tactical Incident Brief</label>
+              <textarea class="form-textarea" id="brief"
+                placeholder="Describe the incident context, observed hazards, and operational goals...">Brahmaputra north-bank flooding during June 2022 monsoon. Sentinel-1 SAR pre/post comparison over Barpeta-Nalbari district. Multi-factor impact scoring for emergency responder priority deployment.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 02 -->
+        <div class="step-card active-step">
+          <div class="step-header">
+            <div class="step-num-badge">02</div>
+            <span class="step-title">Step 02 &mdash; Affected Region (AOI) Definition</span>
+            <div style="margin-left:auto;">
+              <div class="no-boundary-pill"><span class="nb-dot"></span>AOI Defined</div>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="search-box">
+              <span class="search-icon">&#128269;</span>
+              <input id="aoi-search" type="text" placeholder="Search location or coordinates..." value="Barpeta, Assam, India"/>
+            </div>
+            <div class="map-tools">
+              <button class="map-tool-btn draw" id="btn-draw">&#9654; Draw Polygon</button>
+              <button class="map-tool-btn" id="btn-geojson">&#128196; GeoJSON / KML</button>
+              <button class="map-tool-btn" id="btn-bbox">&#9974; BBox from Config</button>
+            </div>
+            <div id="map"></div>
+            <div class="aoi-stats">
+              <div class="aoi-stat">
+                <div class="aoi-stat-label">Surface AOI</div>
+                <div class="aoi-stat-val has-val" id="aoi-surface">&mdash;</div>
+              </div>
+              <div class="aoi-stat">
+                <div class="aoi-stat-label">Population Density</div>
+                <div class="aoi-stat-val" id="aoi-pop">&mdash;</div>
+              </div>
+              <div class="aoi-stat">
+                <div class="aoi-stat-label">Administrative Units</div>
+                <div class="aoi-stat-val" id="aoi-admin">&mdash;</div>
+              </div>
+              <div class="aoi-stat">
+                <div class="aoi-stat-label">Infrastructure</div>
+                <div class="aoi-stat-val" id="aoi-infra">&mdash;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div id="right-panel">
+
+        <!-- STEP 03 -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num-badge">03</div>
+            <span class="step-title">Step 03 &mdash; Multi-Temporal Passes</span>
+            <span class="step-pill pill-await">AWAITING SELECTION</span>
+          </div>
+          <div class="step-body">
+            <div class="temporal-pairing">
+              <div class="tp-label">&#128260; Temporal Pairing:</div>
+              <div class="tp-status">AWAITING DATE SELECTION</div>
+            </div>
+
+            <!-- T0 Pre -->
+            <div class="temporal-pass">
+              <div class="tp-header">
+                <span class="tp-badge">T0 &bull; PRE-EVENT (BEFORE)</span>
+                <span style="flex:1"></span>
+                <span class="tp-aw">AWAITING SELECTION</span>
+              </div>
+              <div class="tp-body">
+                <div class="tp-row">
+                  <div class="tp-field">
+                    <div class="tp-lbl">Date</div>
+                    <input class="tp-date" type="date" id="pre-date" value="2022-04-20"/>
+                  </div>
+                  <div class="tp-field">
+                    <div class="tp-lbl">Satellite</div>
+                    <select class="tp-sat" id="pre-sat">
+                      <option>Sentinel-1 SAR / Sentinel-2</option>
+                      <option>Sentinel-1 SAR Only</option>
+                      <option>Sentinel-2 Optical Only</option>
+                      <option>Landsat-8</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="tp-row">
+                  <div class="tp-field"><div class="tp-lbl">Resolution</div><div class="tp-val">10 m</div></div>
+                  <div class="tp-field"><div class="tp-lbl">Status</div><div class="tp-val aw">Awaiting selection</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tp-divider">
+              <div class="tp-divider-line"></div>
+              <div class="tp-divider-lbl">&#9654; Temporal Delta Comparison</div>
+              <div class="tp-divider-line"></div>
+            </div>
+
+            <!-- T1 Post -->
+            <div class="temporal-pass">
+              <div class="tp-header">
+                <span class="tp-badge post">T1 &bull; POST-EVENT (AFTER)</span>
+                <span style="flex:1"></span>
+                <span class="tp-aw">AWAITING SELECTION</span>
+              </div>
+              <div class="tp-body">
+                <div class="tp-row">
+                  <div class="tp-field">
+                    <div class="tp-lbl">Date</div>
+                    <input class="tp-date" type="date" id="post-date" value="2022-06-17"/>
+                  </div>
+                  <div class="tp-field">
+                    <div class="tp-lbl">Satellite</div>
+                    <select class="tp-sat" id="post-sat">
+                      <option>Sentinel-1 SAR / Sentinel-2</option>
+                      <option>Sentinel-1 SAR Only</option>
+                      <option>Sentinel-2 Optical Only</option>
+                      <option>Landsat-8</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="tp-row">
+                  <div class="tp-field"><div class="tp-lbl">Resolution</div><div class="tp-val">10 m</div></div>
+                  <div class="tp-field"><div class="tp-lbl">Status</div><div class="tp-val aw">Awaiting selection</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tp-note">
+              <span class="tp-note-icon">&#9432;</span>
+              <span class="tp-note-text">Awaiting date selection + Configure pre-event baseline and crisis acquisition passes to enable change detection.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 04 -->
+        <div class="step-card">
+          <div class="step-header">
+            <div class="step-num-badge">04</div>
+            <span class="step-title">Step 04 &mdash; Review &amp; Launch</span>
+            <span class="step-pill pill-pending">SETUP PENDING</span>
+          </div>
+          <div class="review-body">
+            <div class="review-row"><span class="review-key">Event Name</span><span class="review-val set" id="rv-name">Not specified</span></div>
+            <div class="review-row"><span class="review-key">Location</span><span class="review-val set" id="rv-location">Not specified</span></div>
+            <div class="review-row"><span class="review-key">Before Date</span><span class="review-val" id="rv-before">&mdash;</span></div>
+            <div class="review-row"><span class="review-key">After Date</span><span class="review-val" id="rv-after">&mdash;</span></div>
+            <div class="review-row"><span class="review-key">Satellite</span><span class="review-val" id="rv-sat">&mdash;</span></div>
+          </div>
+          <div class="auto-notify">
+            <div class="an-cb" onclick="toggleNotify()"><span class="an-check" id="an-check">&#10003;</span></div>
+            <div class="an-text">
+              <div class="an-title">Auto-Notify Emergency Centers</div>
+              <div class="an-desc">Dispatches instantaneous alerts to NDRF &amp; State Emergency Operation Center once model confidence threshold exceeds 85%.</div>
+            </div>
+          </div>
+          <div class="review-actions">
+            <button class="btn btn-run" id="btn-run" style="flex:1;" onclick="runAnalysis()">&#9889; RUN DISASTER ANALYSIS</button>
+            <button class="btn btn-sim" onclick="simulate()">&#9654; Simulate</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Map
+var map = L.map('map',{center:[26.235,91.1],zoom:9,zoomControl:true,attributionControl:false});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);
+L.rectangle([[26.10,90.95],[26.37,91.25]],{color:'#38a5f8',weight:1.5,fillColor:'#38a5f8',fillOpacity:0.12,dashArray:'4 3'}).addTo(map);
+map.fitBounds([[26.10,90.95],[26.37,91.25]],{padding:[20,20]});
+var area=(26.37-26.10)*111*(91.25-90.95)*111*Math.cos(26.235*Math.PI/180);
+document.getElementById('aoi-surface').textContent=Math.round(area)+' km²';
+document.getElementById('aoi-pop').textContent='~820 k';
+document.getElementById('aoi-admin').textContent='3 districts';
+document.getElementById('aoi-infra').textContent='Roads + Fac';
+
+// Disaster select
+function selectDisaster(el,type){
+  document.querySelectorAll('.disaster-btn').forEach(function(b){b.className='disaster-btn';});
+  var m={flood:'sel-flood',cyclone:'sel-cyclone',landslide:'sel-landslide',wildfire:'sel-wildfire'};
+  el.className='disaster-btn '+(m[type]||'sel-flood');
+  updateReview();
+}
+
+// Auto-notify
+var notifyOn=true;
+function toggleNotify(){
+  notifyOn=!notifyOn;
+  document.getElementById('an-check').style.display=notifyOn?'':'none';
+}
+
+// Live review
+function updateReview(){
+  var n=document.getElementById('event-name').value.trim();
+  var l=document.getElementById('admin-domain').value.trim();
+  var b=document.getElementById('pre-date').value;
+  var a=document.getElementById('post-date').value;
+  var sel=document.getElementById('pre-sat');
+  var s=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
+  document.getElementById('rv-name').textContent=n||'Not specified';
+  document.getElementById('rv-location').textContent=l||'Not specified';
+  document.getElementById('rv-before').textContent=b||'—';
+  document.getElementById('rv-after').textContent=a||'—';
+  document.getElementById('rv-sat').textContent=s||'—';
+  ['rv-name','rv-location'].forEach(function(id){document.getElementById(id).className='review-val set';});
+  ['rv-before','rv-after','rv-sat'].forEach(function(id){
+    var el=document.getElementById(id);
+    el.className='review-val'+(el.textContent!=='—'?' set':'');
+  });
+}
+['event-name','admin-domain','pre-date','post-date','pre-sat'].forEach(function(id){
+  var el=document.getElementById(id);if(el)el.addEventListener('input',updateReview);
+});
+updateReview();
+
+// Tab switching
+function switchTab(n){
+  var tabs=document.querySelectorAll('.wtab');
+  tabs.forEach(function(t,i){
+    t.classList.remove('active','done');
+    if(i+1<n)t.classList.add('done');
+  });
+  if(tabs[n-1])tabs[n-1].classList.add('active');
+
+  var stepCards = document.querySelectorAll('.step-card');
+  stepCards.forEach(function(card, idx) {
+    if (idx + 1 === n) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      card.style.borderColor = 'var(--accent)';
+      setTimeout(function(){ card.style.borderColor = ''; }, 1500);
+    }
+  });
+}
+
+// Map tools
+document.getElementById('btn-bbox').addEventListener('click',function(){
+  map.fitBounds([[26.10,90.95],[26.37,91.25]],{padding:[20,20]});
+});
+var drawMode=false;
+document.getElementById('btn-draw').addEventListener('click',function(){
+  drawMode=!drawMode;
+  this.innerHTML=drawMode?'&#9209; Cancel Draw':'&#9654; Draw Polygon';
+  this.className='map-tool-btn'+(drawMode?' draw':'');
+});
+
+// Run analysis
+function runAnalysis(){
+  var n=document.getElementById('event-name').value.trim();
+  if(!n){
+    document.getElementById('event-name').style.borderColor='var(--red)';
+    document.getElementById('event-name').focus();return;
+  }
+  var btn=document.getElementById('btn-run');
+  btn.disabled=true;btn.style.opacity='.7';
+  btn.innerHTML='&#9203; Submitting to Pipeline...';
+  setTimeout(function(){
+    btn.innerHTML='&#10004; Queued &mdash; Opening AI Detection...';
+    btn.style.background='linear-gradient(135deg,#166534,#16a34a)';
+    btn.style.animation='none';
+    setTimeout(function(){
+      window.location.href = 'ai-change-detection.html';
+    }, 900);
+  }, 1200);
+}
+
+function simulate(){
+  var b=document.getElementById('btn-run');
+  b.innerHTML='&#9203; Simulating Run &rarr;';
+  setTimeout(function(){
+    window.location.href = 'ai-change-detection.html';
+  }, 900);
+}
+
+// Nav
+document.querySelectorAll('.nav-item').forEach(function(item){
+  item.addEventListener('click',function(e){
+    if(item.getAttribute('target')==='_blank') return;
+    var href = item.getAttribute('href');
+    if(href && href !== '#') return;
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spatial Confidence &amp; Uncertainty - TerraAlert GEOINT Command</title>
+  <meta name="description" content="Understand how reliable each detected change is before making operational decisions using Bayesian spatial confidence zoning."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-deep: #060a12;
+      --bg-base: #0a0f1e;
+      --bg-surface: #0d1525;
+      --bg-card: #111827;
+      --bg-card-alt: #0f1720;
+      --bg-hover: #1a2540;
+      --border: rgba(56, 165, 248, 0.12);
+      --border-bright: rgba(56, 165, 248, 0.28);
+      --accent: #38a5f8;
+      --accent-dim: rgba(56, 165, 248, 0.08);
+      --green: #22c55e;
+      --green-dim: rgba(34, 197, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.12);
+      --purple: #a78bfa;
+      --purple-dim: rgba(167, 139, 250, 0.12);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.12);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --sidebar-w: 192px;
+      --topbar-h: 44px;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-deep);
+      color: var(--text);
+      font-size: 12.5px;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+
+    /* ── TOPBAR ─────────────────────────────────────── */
+    #topbar {
+      height: var(--topbar-h);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 500;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #1e40af, #38a5f8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand-name { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.5px; }
+    .brand-sub { font-size: 9px; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .brand-version {
+      font-size: 9px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+    }
+    .topbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      overflow: hidden;
+    }
+    .event-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .event-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+      animation: pulse-amb 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-amb { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .top-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 3px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: default;
+      white-space: nowrap;
+    }
+    .top-chip.ready { border-color: rgba(34, 197, 94, 0.35); color: var(--green); }
+    .top-chip.synced { border-color: rgba(56, 165, 248, 0.35); color: var(--accent); }
+    .topbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 13px;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text); }
+    .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 15px;
+      height: 15px;
+      background: var(--amber);
+      border-radius: 50%;
+      font-size: 8px;
+      font-weight: 700;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+    .user-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #38a5f8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .user-info { display: flex; flex-direction: column; line-height: 1.1; }
+    .user-name { font-size: 11px; font-weight: 600; color: var(--text); }
+    .user-role { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
+
+    /* ── LAYOUT ─────────────────────────────────────── */
+    #layout { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── SIDEBAR ────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--accent-dim); }
+    .nav-item.active { color: var(--accent); background: var(--accent-dim); border-left-color: var(--accent); font-weight: 600; }
+    .nav-icon { width: 16px; text-align: center; font-size: 13px; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .nav-dot { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .nav-section { padding: 12px 14px 4px; font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 1.2px; text-transform: uppercase; }
+
+    /* ── MAIN ───────────────────────────────────────── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-base);
+    }
+
+    /* ── SUBTITLE & TOP ACTION ROW ──────────────────── */
+    #page-sub-row {
+      padding: 12px 20px 10px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .sub-row-left {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 600px;
+      line-height: 1.4;
+    }
+    .sub-row-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-family: var(--font);
+      text-decoration: none;
+    }
+    .btn-icon-square {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-icon-square:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+      border-color: rgba(37, 99, 235, 0.5);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    }
+
+    /* ── KPI 4-CARD ROW ─────────────────────────────── */
+    #kpi-strip {
+      padding: 12px 20px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .kpi-card:hover { border-color: var(--border-bright); }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--kpi-c, var(--accent)), transparent);
+    }
+    .kpi-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .kpi-grade {
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: var(--green-dim);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      font-family: var(--mono);
+    }
+    .kpi-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 5px var(--green);
+    }
+    .kpi-dot.cyan { background: var(--cyan); box-shadow: 0 0 5px var(--cyan); }
+    .kpi-val-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .kpi-number {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      font-family: var(--mono);
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .kpi-unit-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+      font-family: var(--mono);
+    }
+    .kpi-sub-line {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .kpi-badge-sub {
+      font-size: 8.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--green);
+      font-family: var(--mono);
+    }
+
+    /* ── MAIN CONTENT (2-COLUMN GRID) ───────────────── */
+    #content-grid {
+      padding: 0 20px 20px;
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 14px;
+      flex: 1;
+      min-height: 520px;
+    }
+
+    /* ── MAP CONTAINER CARD ─────────────────────────── */
+    #zoning-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .zoning-header {
+      padding: 10px 14px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .zh-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .zh-icon {
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .zh-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: var(--text);
+    }
+    .zh-sector {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .zh-coords {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 9px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+    }
+    .zh-coords strong { color: var(--accent); }
+
+    /* Layer Filters Bar */
+    .filters-bar {
+      padding: 7px 14px;
+      background: var(--bg-card-alt);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .layer-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+    }
+    .layer-filter-item:hover { color: var(--text); }
+    .lf-box {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      border: 1px solid;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .lf-high .lf-box { border-color: rgba(56, 165, 248, 0.6); background: rgba(56, 165, 248, 0.2); color: var(--accent); }
+    .lf-med .lf-box { border-color: rgba(6, 182, 212, 0.6); background: rgba(6, 182, 212, 0.2); color: var(--cyan); }
+    .lf-low .lf-box { border-color: rgba(245, 158, 11, 0.6); background: rgba(245, 158, 11, 0.2); color: var(--amber); }
+    .lf-mask .lf-box { border-color: rgba(167, 139, 250, 0.6); background: rgba(167, 139, 250, 0.2); color: var(--purple); }
+    .layer-filter-item.off { opacity: 0.4; }
+
+    /* Map Element */
+    #confidence-map {
+      flex: 1;
+      width: 100%;
+      min-height: 400px;
+      background: #060a12;
+      position: relative;
+    }
+
+    /* Floating Legend in Map */
+    .map-confidence-legend {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      background: rgba(13, 21, 37, 0.92);
+      border: 1px solid var(--border-bright);
+      backdrop-filter: blur(8px);
+      border-radius: 5px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 400;
+      pointer-events: auto;
+    }
+    .leg-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 9.5px;
+      color: var(--text-dim);
+    }
+    .leg-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .leg-high { background: #38a5f8; border: 1px solid #60a5fa; }
+    .leg-med { background: #06b6d4; border: 1px solid #22d3ee; }
+    .leg-low { background: #f59e0b; border: 1px solid #fbbf24; }
+    .leg-mask { background: #7c3aed; border: 1px solid #a78bfa; }
+
+    /* Map scale box */
+    .map-scale-chip {
+      position: absolute;
+      bottom: 50px;
+      right: 12px;
+      background: rgba(13, 21, 37, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 8.5px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      z-index: 400;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ── RIGHT COLUMN: DIRECTIVES & REMEDIATION ─────── */
+    #directives-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Operational Directive Warning Card */
+    .directive-card {
+      background: #141018;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.08);
+      position: relative;
+    }
+    .directive-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--red);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .directive-icon {
+      font-size: 16px;
+    }
+    .directive-body {
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .directive-body strong {
+      color: #fff;
+    }
+    .directive-footer {
+      font-size: 8.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      font-family: var(--mono);
+      border-top: 1px solid rgba(239, 68, 68, 0.15);
+      padding-top: 8px;
+    }
+
+    /* Remediation Card */
+    .remediation-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .rem-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .rem-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: rgba(56, 165, 248, 0.06);
+      border: 1px solid var(--border-bright);
+      color: var(--text);
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .rem-btn:hover {
+      background: rgba(56, 165, 248, 0.14);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .rem-icon {
+      font-size: 14px;
+      color: var(--accent);
+    }
+
+    /* Sector detail inspector */
+    .sector-inspector-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .si-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+    .si-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10.5px;
+    }
+    .si-row span { color: var(--text-muted); }
+    .si-row strong { font-family: var(--mono); color: var(--text); }
+
+    /* Custom Leaflet popup */
+    .leaflet-popup-content-wrapper {
+      background: rgba(13, 21, 37, 0.95) !important;
+      border: 1px solid var(--border-bright) !important;
+      color: var(--text) !important;
+      border-radius: 6px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+      font-family: var(--font) !important;
+    }
+    .leaflet-popup-tip { background: #0d1525 !important; }
+    .popup-box { padding: 4px; display: flex; flex-direction: column; gap: 5px; }
+    .pb-head { display: flex; justify-content: space-between; font-size: 9px; font-family: var(--mono); color: var(--accent); font-weight: 700; }
+    .pb-title { font-size: 12px; font-weight: 700; color: #fff; }
+    .pb-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+    .pb-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 9px; font-family: var(--mono); }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">&#128752;</div>
+    <div class="brand-text">
+      <span class="brand-name">TerraAlert</span>
+      <span class="brand-sub">GEOINT Command</span>
+    </div>
+    <span class="brand-version">v1.0</span>
+  </div>
+  <div class="topbar-center">
+    <div class="event-status">
+      <span class="event-dot"></span>
+      CURRENT EVENT:&nbsp;<strong style="color:var(--amber)" id="event-display-name">ASSAM FLOODS &middot; JUN 2022</strong>
+    </div>
+    <div class="top-chip synced">S-1A / S-2B SYNCED</div>
+    <div class="top-chip ready">CHANGE DETECTION: 99.4% NOMINAL</div>
+    <div class="top-chip ready" style="color:var(--accent);">VERIFICATION: CONFIDENCE 96.2%</div>
+  </div>
+  <div class="topbar-right">
+    <div class="icon-btn" title="Notifications">&#128276;<div class="notif-badge">3</div></div>
+    <div class="icon-btn" title="Settings">&#9881;</div>
+    <div class="user-pill">
+      <div class="user-avatar">EV</div>
+      <div class="user-info">
+        <span class="user-name">Dr. Elena Vance</span>
+        <span class="user-role">OPS-DIR &middot; CMD-L1</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <a href="index.html" class="nav-item">
+      <span class="nav-icon">&#9638;</span> Dashboard
+    </a>
+    <a href="new-analysis.html" class="nav-item">
+      <span class="nav-icon">&#10022;</span> New Analysis
+    </a>
+    <a href="ai-change-detection.html" class="nav-item">
+      <span class="nav-icon">&#9650;</span> AI Change Detection
+    </a>
+    <a href="temporal-comparison.html" class="nav-item">
+      <span class="nav-icon">&#9741;</span> Temporal Compare
+    </a>
+    <a href="spatial-confidence.html" class="nav-item active">
+      <span class="nav-icon">&#128737;</span> Spatial Confidence
+    </a>
+    <a href="emergency-priority-map.html" class="nav-item">
+      <span class="nav-icon">&#128506;</span> Priority Map
+    </a>
+    <a href="impact-analysis.html" class="nav-item">
+      <span class="nav-icon">&#9741;</span> Impact Analysis
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">&#9889;</span> Events
+      <span class="nav-badge">6</span>
+    </a>
+    <a href="reports.html" class="nav-item">
+      <span class="nav-icon">&#128196;</span> Reports
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">&#128225;</span> Data Sources
+      <span class="nav-dot"></span>
+    </a>
+    <div class="nav-section">System</div>
+    <a href="/docs" class="nav-item" target="_blank">
+      <span class="nav-icon">&#128268;</span> API Docs
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">&#9881;</span> Settings
+    </a>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- SUBTITLE & ACTIONS BAR -->
+    <div id="page-sub-row">
+      <div class="sub-row-left">
+        Understand how reliable each detected change is before making operational decisions.
+      </div>
+      <div class="sub-row-actions">
+        <button class="btn-icon-square" title="Filter Presets">&#9881;</button>
+        <button class="btn btn-primary" onclick="exportDossier()">&#128196; Export Sensor Uncertainty Dossier (PDF)</button>
+      </div>
+    </div>
+
+    <!-- 4-CARD KPI STRIP -->
+    <div id="kpi-strip">
+
+      <!-- Card 1: Overall Confidence -->
+      <div class="kpi-card" style="--kpi-c:var(--accent);">
+        <div class="kpi-top">
+          <span class="kpi-label">Overall Confidence</span>
+          <span class="kpi-grade">GRADE A</span>
+        </div>
+        <div class="kpi-val-row">
+          <span class="kpi-number" id="kpi-overall">91.0%</span>
+          <span class="kpi-unit-tag">&plusmn;3.2% error</span>
+        </div>
+        <div class="kpi-sub-line">
+          <span class="kpi-badge-sub">OPERATIONAL READY</span> &middot; P(&theta;|D)=0.941
+        </div>
+      </div>
+
+      <!-- Card 2: Satellite Data -->
+      <div class="kpi-card" style="--kpi-c:var(--green);">
+        <div class="kpi-top">
+          <span class="kpi-label">Satellite Data</span>
+          <span class="kpi-dot"></span>
+        </div>
+        <div class="kpi-val-row">
+          <span class="kpi-number">95.2%</span>
+          <span class="kpi-unit-tag">Nominal</span>
+        </div>
+        <div class="kpi-sub-line">
+          S-1A IW GRD &middot; 20m GSD &middot; 0.12px Alignment
+        </div>
+      </div>
+
+      <!-- Card 3: Change Detection -->
+      <div class="kpi-card" style="--kpi-c:var(--cyan);">
+        <div class="kpi-top">
+          <span class="kpi-label">Change Detection</span>
+          <span class="kpi-dot cyan"></span>
+        </div>
+        <div class="kpi-val-row">
+          <span class="kpi-number">90.4%</span>
+          <span class="kpi-unit-tag" style="color:var(--cyan);">Log-Ratio</span>
+        </div>
+        <div class="kpi-sub-line">
+          Dual-pol Otsu Bimodal Filter &middot; Classical+ML
+        </div>
+      </div>
+
+      <!-- Card 4: Population Data -->
+      <div class="kpi-card" style="--kpi-c:var(--purple);">
+        <div class="kpi-top">
+          <span class="kpi-label">Population Data</span>
+          <span class="kpi-dot" style="background:var(--purple);box-shadow:0 0 5px var(--purple);"></span>
+        </div>
+        <div class="kpi-val-row">
+          <span class="kpi-number">94.0%</span>
+          <span class="kpi-unit-tag" style="color:var(--purple);">WorldPop</span>
+        </div>
+        <div class="kpi-sub-line">
+          100m Calibrated Settlement &middot; Area Preserved
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MAIN 2-COLUMN SECTION -->
+    <div id="content-grid">
+
+      <!-- LEFT: Spatial Confidence Zoning Map -->
+      <div id="zoning-card">
+        <div class="zoning-header">
+          <div class="zh-left">
+            <span class="zh-icon">&#9638;</span>
+            <span class="zh-title">Spatial Confidence Zoning</span>
+            <span class="zh-sector">BRAHMAPUTRA BASIN &middot; SECTOR BARPETA-NALBARI</span>
+          </div>
+          <div class="zh-coords">
+            <span>LAT: <strong id="lbl-lat">26.2341&deg;N</strong></span>
+            <span>LON: <strong id="lbl-lon">91.1419&deg;E</strong></span>
+            <span>Z: <strong id="lbl-zoom">10.5X</strong></span>
+          </div>
+        </div>
+
+        <!-- Filter Checkboxes -->
+        <div class="filters-bar">
+          <div class="layer-filter-item lf-high" onclick="toggleConfidenceLayer(this, 'high')">
+            <div class="lf-box">&#10003;</div>
+            <span>High Confidence (90-100%)</span>
+          </div>
+          <div class="layer-filter-item lf-med" onclick="toggleConfidenceLayer(this, 'med')">
+            <div class="lf-box">&#10003;</div>
+            <span>Med Confidence (70-89%)</span>
+          </div>
+          <div class="layer-filter-item lf-low" onclick="toggleConfidenceLayer(this, 'low')">
+            <div class="lf-box">&#10003;</div>
+            <span>Low (40-69%)</span>
+          </div>
+          <div class="layer-filter-item lf-mask" onclick="toggleConfidenceLayer(this, 'mask')">
+            <div class="lf-box">&#10003;</div>
+            <span>Terrain Layover Mask</span>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div id="confidence-map"></div>
+
+        <!-- Scale tag -->
+        <div class="map-scale-chip">
+          <span>SCALE: <strong>1:25,000</strong></span>
+          <span>&middot;</span>
+          <span>500 m</span>
+          <span>&middot;</span>
+          <span>N &uarr;</span>
+        </div>
+
+        <!-- Bottom Legend -->
+        <div class="map-confidence-legend">
+          <div class="leg-item">
+            <div class="leg-color leg-high"></div>
+            <span>High Confidence: 90-100% &middot; Stable SAR</span>
+          </div>
+          <div class="leg-item">
+            <div class="leg-color leg-med"></div>
+            <span>Med Confidence: 70-89% &middot; Canopy/Look</span>
+          </div>
+          <div class="leg-item">
+            <div class="leg-color leg-low"></div>
+            <span>Low Confidence: 40-69% &middot; Ridge/Slope</span>
+          </div>
+          <div class="leg-item">
+            <div class="leg-color leg-mask"></div>
+            <span>Masked / Layover: &lt;40% &middot; Radar Blind</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Operational Directive & Remediation -->
+      <div id="directives-panel">
+
+        <!-- Card 1: Operational Directive -->
+        <div class="directive-card">
+          <div class="directive-top">
+            <span class="directive-icon">&#9888;</span>
+            <span>OPERATIONAL DIRECTIVE</span>
+          </div>
+          <div class="directive-body">
+            Automated detection <strong>must be verified</strong> by field spotters or drone reconnaissance in sectors flagged <strong>below 75% confidence</strong> prior to heavy vehicle or rescue craft deployment.
+          </div>
+          <div class="directive-footer">
+            PROTOCOL: NDMA-SOP-LVL3 &middot; AUTHORIZED BY CMD-L1
+          </div>
+        </div>
+
+        <!-- Card 2: Uncertainty Remediation -->
+        <div class="remediation-card">
+          <div class="rem-title">Uncertainty Remediation</div>
+          <button class="rem-btn" onclick="taskHighRes()">
+            <span class="rem-icon">&#128752;</span>
+            <div>
+              <div>REQUEST HIGH-RES TASKING</div>
+              <div style="font-size:8.5px;color:var(--text-muted);font-weight:400;">Planet 3M Optical Constellation</div>
+            </div>
+          </button>
+          <button class="rem-btn" onclick="generateGroundTruthCSV()">
+            <span class="rem-icon">&#128229;</span>
+            <div>
+              <div>GENERATE GROUND TRUTH POINTS</div>
+              <div style="font-size:8.5px;color:var(--text-muted);font-weight:400;">Export GPS Survey Points (CSV)</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- Card 3: Sector Detail Inspector -->
+        <div class="sector-inspector-card">
+          <div class="si-header">
+            <span>SELECTED AOI SECTOR</span>
+            <span id="si-tag" style="color:var(--accent);">AOI-D4</span>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);" id="si-title">
+            Foreshortened Ridge: Confidence 62%
+          </div>
+          <div style="font-size:10.5px;color:var(--text-muted);line-height:1.4;" id="si-desc">
+            Radar Shadow Risk (Slope &gt; 15&deg;). Volume backscatter attenuated by western cliff edge. Automated dispatch flagged for human verification.
+          </div>
+          <div class="si-row">
+            <span>Bayesian Score:</span>
+            <strong id="si-bayes">0.621</strong>
+          </div>
+          <div class="si-row">
+            <span>Terrain Slope:</span>
+            <strong>18.4&deg; (STEEP)</strong>
+          </div>
+          <div class="si-row">
+            <span>Status:</span>
+            <strong style="color:var(--amber);">VERIFY (Field Tasked)</strong>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ── Map Initialization ────────────────────────────────────────────────────────
+var map = L.map('confidence-map', {
+  center: [26.235, 91.1],
+  zoom: 10,
+  zoomControl: true,
+  attributionControl: false
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19,
+  subdomains: 'abcd'
+}).addTo(map);
+
+// Update coordinates on move
+map.on('mousemove', function(e) {
+  document.getElementById('lbl-lat').textContent = e.latlng.lat.toFixed(4) + '°N';
+  document.getElementById('lbl-lon').textContent = e.latlng.lng.toFixed(4) + '°E';
+});
+map.on('zoomend', function() {
+  document.getElementById('lbl-zoom').textContent = map.getZoom() + '.0X';
+});
+
+// Layer Groups
+var layerGroups = {
+  high: L.layerGroup().addTo(map),
+  med: L.layerGroup().addTo(map),
+  low: L.layerGroup().addTo(map),
+  mask: L.layerGroup().addTo(map)
+};
+
+var filterStates = { high: true, med: true, low: true, mask: true };
+
+function toggleConfidenceLayer(el, key) {
+  filterStates[key] = !filterStates[key];
+  el.classList.toggle('off', !filterStates[key]);
+  if (filterStates[key]) {
+    map.addLayer(layerGroups[key]);
+  } else {
+    map.removeLayer(layerGroups[key]);
+  }
+}
+
+// ── Fallback Fetch Helper ─────────────────────────────────────────────────────
+function fetchWithFallback(url, fallbackUrl) {
+  return fetch(url).then(function(r) {
+    if (r && r.ok) return r.json();
+    return fetch(fallbackUrl).then(function(d) { return d && d.ok ? d.json() : null; });
+  }).catch(function() {
+    return fetch(fallbackUrl).then(function(d) { return d && d.ok ? d.json() : null; }).catch(function() { return null; });
+  });
+}
+
+var allFeatures = [];
+
+function loadConfidenceData() {
+  fetchWithFallback('/api/zones', '../outputs/demo/zones.geojson').then(function(data) {
+    if (!data || !data.features || !data.features.length) return;
+    allFeatures = data.features;
+
+    var highCount = 0, medCount = 0, lowCount = 0;
+
+    allFeatures.forEach(function(f, idx) {
+      var p = f.properties || {};
+      var conf = p.confidence || 'Medium';
+      var confScore = p.confidence_score != null ? p.confidence_score : (conf === 'High' ? 0.92 : conf === 'Medium' ? 0.78 : 0.62);
+
+      var color = '#38a5f8';
+      var targetGroup = layerGroups.high;
+
+      if (conf === 'High' || confScore >= 0.85) {
+        color = '#38a5f8';
+        targetGroup = layerGroups.high;
+        highCount++;
+      } else if (conf === 'Medium' || confScore >= 0.70) {
+        color = '#06b6d4';
+        targetGroup = layerGroups.med;
+        medCount++;
+      } else {
+        color = '#f59e0b';
+        targetGroup = layerGroups.low;
+        lowCount++;
+      }
+
+      if (f.geometry) {
+        var lyr = L.geoJSON(f, {
+          style: {
+            color: color,
+            weight: 2,
+            fillColor: color,
+            fillOpacity: 0.22,
+            dashArray: conf === 'High' ? null : '4 3'
+          }
+        }).addTo(targetGroup);
+
+        lyr.on('click', function() {
+          selectSector({
+            tag: 'ZONE-' + (p.zone_id || idx),
+            title: (p.name || 'Zone ' + p.zone_id) + ': Confidence ' + Math.round(confScore * 100) + '%',
+            desc: p.reason || 'SAR backscatter change combined with terrain slope verification.',
+            bayes: confScore.toFixed(3),
+            slope: (conf === 'Low' ? '18.4° (STEEP)' : '2.1° (FLAT PLAINS)'),
+            status: p.tier === 'P1' ? 'P1 HIGH PRIORITY' : p.tier || 'VERIFY'
+          });
+        });
+
+        lyr.bindPopup(
+          '<div class="popup-box">' +
+            '<div class="pb-head"><span>AOI SECTOR ' + (p.zone_id || idx) + '</span><span>' + conf.toUpperCase() + ' CONF</span></div>' +
+            '<div class="pb-title">' + (p.name || 'Zone ' + p.zone_id) + ' &middot; ' + Math.round(confScore * 100) + '%</div>' +
+            '<div class="pb-desc">' + (p.reason || 'Spatially aligned SAR differencing. Evaluated against JRC permanent baseline.') + '</div>' +
+            '<div class="pb-foot"><span>BAYES SCORE: ' + confScore.toFixed(3) + '</span><a href="javascript:void(0)" style="color:var(--accent);text-decoration:none;font-weight:700;">INSPECT &rarr;</a></div>' +
+          '</div>'
+        );
+      }
+    });
+
+    // Add illustrative terrain shadow / layover polygons on ridges
+    var layoverPoly = L.polygon([
+      [26.31, 91.02], [26.33, 91.05], [26.31, 91.08], [26.29, 91.04]
+    ], {
+      color: '#7c3aed',
+      weight: 1.5,
+      fillColor: '#7c3aed',
+      fillOpacity: 0.35,
+      dashArray: '3 3'
+    }).addTo(layerGroups.mask).bindPopup('<strong>Terrain Layover / Shadow Mask</strong><br/>Slope > 15° &middot; Radar blind angle.');
+
+    // Overall Confidence weighted average
+    var avgConf = (highCount * 0.94 + medCount * 0.78 + lowCount * 0.62) / Math.max(1, allFeatures.length);
+    document.getElementById('kpi-overall').textContent = (avgConf * 100).toFixed(1) + '%';
+
+    map.fitBounds([[26.10, 90.95], [26.37, 91.25]], { padding: [25, 25] });
+  });
+}
+
+loadConfidenceData();
+
+function selectSector(s) {
+  document.getElementById('si-tag').textContent = s.tag;
+  document.getElementById('si-title').textContent = s.title;
+  document.getElementById('si-desc').textContent = s.desc;
+  document.getElementById('si-bayes').textContent = s.bayes;
+}
+
+// ── Uncertainty Remediation Actions ───────────────────────────────────────────
+function taskHighRes() {
+  alert('🛰 Planet 3M High-Res Tasking Dispatched!\n\nTarget Bounding Box: [90.95, 26.10, 91.25, 26.37]\nEstimated Pass: Next orbital window in 3h 40m.\nPriority: NDMA-LVL1 Rapid Disaster Tasking.');
+}
+
+function generateGroundTruthCSV() {
+  if (!allFeatures.length) {
+    alert('Loading data, please wait...');
+    return;
+  }
+  var csvRows = [['Point_ID', 'Zone_ID', 'Zone_Name', 'Confidence', 'Confidence_Score', 'Survey_Priority', 'Target_Lat', 'Target_Lon']];
+  allFeatures.forEach(function(f, idx) {
+    var p = f.properties || {};
+    var coords = [26.23 + (idx * 0.01), 91.10 + (idx * 0.01)];
+    if (f.geometry && f.geometry.coordinates) {
+      var c = f.geometry.coordinates;
+      while (Array.isArray(c[0])) c = c[0];
+      coords = [c[1] || 26.23, c[0] || 91.10];
+    }
+    csvRows.push([
+      'GTP-' + (1000 + idx),
+      p.zone_id || ('Z' + idx),
+      '"' + (p.name || 'Zone') + '"',
+      p.confidence || 'Medium',
+      (p.confidence_score || 0.85).toFixed(3),
+      p.tier || 'P2',
+      coords[0].toFixed(5),
+      coords[1].toFixed(5)
+    ]);
+  });
+
+  var csvContent = csvRows.map(function(e){ return e.join(','); }).join('\n');
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', 'terraalert_ground_truth_points.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function exportDossier() {
+  window.open('/api/meta', '_blank');
+}
+
+// ── Global Nav Interception Fix ───────────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(function(item) {
+  item.addEventListener('click', function(e) {
+    if (item.getAttribute('target') === '_blank') return;
+    var href = item.getAttribute('href');
+    if (href && href !== '#') return;
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

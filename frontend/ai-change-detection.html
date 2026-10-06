@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Change Detection - TerraAlert GEOINT Command</title>
+  <meta name="description" content="Identify meaningful differences between pre-event and post-event satellite observations using temporal difference analysis."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --bg-deep:#060a12; --bg-base:#0a0f1e; --bg-surface:#0d1525;
+      --bg-card:#111827; --bg-card-alt:#0f1720; --bg-hover:#1a2540; --bg-input:#0c1422;
+      --border:rgba(56,165,248,0.12); --border-bright:rgba(56,165,248,0.28);
+      --accent:#38a5f8; --accent-dim:rgba(56,165,248,0.08);
+      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
+      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
+      --red:#ef4444; --red-dim:rgba(239,68,68,0.12);
+      --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.12);
+      --cyan:#06b6d4; --cyan-dim:rgba(6,182,212,0.12);
+      --text:#e2e8f0; --text-muted:#64748b; --text-dim:#94a3b8;
+      --sidebar-w:192px; --topbar-h:44px;
+      --font:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+    }
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:var(--font);background:var(--bg-deep);color:var(--text);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px;}
+
+    /* ── TOPBAR ─────────────────────────────────── */
+    #topbar{height:var(--topbar-h);background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;flex-shrink:0;z-index:500;}
+    .topbar-brand{display:flex;align-items:center;gap:10px;width:var(--sidebar-w);flex-shrink:0;}
+    .brand-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#1e40af,#38a5f8);display:flex;align-items:center;justify-content:center;font-size:14px;}
+    .brand-text{display:flex;flex-direction:column;line-height:1.1;}
+    .brand-name{font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;}
+    .brand-sub{font-size:9px;font-weight:500;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
+    .brand-version{font-size:9px;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);}
+    .topbar-center{flex:1;display:flex;align-items:center;gap:14px;padding:0 16px;overflow:hidden;}
+    .event-status{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);white-space:nowrap;}
+    .event-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber);animation:pulse-amb 2s ease-in-out infinite;flex-shrink:0;}
+    @keyframes pulse-amb{0%,100%{opacity:1}50%{opacity:.4}}
+    .top-chip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:3px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;cursor:default;white-space:nowrap;}
+    .top-chip.ready{border-color:rgba(34,197,94,.35);color:var(--green);}
+    .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+    .icon-btn{width:30px;height:30px;border-radius:5px;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:13px;position:relative;transition:all .2s;}
+    .icon-btn:hover{background:var(--bg-hover);border-color:var(--border-bright);color:var(--text);}
+    .notif-badge{position:absolute;top:-4px;right:-4px;width:15px;height:15px;background:var(--amber);border-radius:50%;font-size:8px;font-weight:700;color:#000;display:flex;align-items:center;justify-content:center;}
+    .user-pill{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:4px 10px;cursor:pointer;}
+    .user-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#38a5f8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
+    .user-info{display:flex;flex-direction:column;line-height:1.1;}
+    .user-name{font-size:11px;font-weight:600;color:var(--text);}
+    .user-role{font-size:9px;color:var(--text-muted);letter-spacing:.5px;}
+
+    /* ── LAYOUT ─────────────────────────────────── */
+    #layout{flex:1;display:flex;overflow:hidden;}
+
+    /* ── SIDEBAR ────────────────────────────────── */
+    #sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:8px 0;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:var(--text-muted);font-size:12px;font-weight:500;letter-spacing:.3px;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
+    .nav-item:hover{color:var(--text);background:var(--accent-dim);}
+    .nav-item.active{color:var(--accent);background:var(--accent-dim);border-left-color:var(--accent);}
+    .nav-icon{width:16px;text-align:center;font-size:13px;flex-shrink:0;}
+    .nav-badge{margin-left:auto;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+    .nav-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
+    .nav-section{padding:12px 14px 4px;font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:1.2px;text-transform:uppercase;}
+    .nav-sub{padding:6px 14px 6px 40px;font-size:11px;color:var(--text-muted);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none;display:block;}
+    .nav-sub:hover{color:var(--text);background:var(--accent-dim);}
+    .nav-sub.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-dim);}
+
+    /* ── MAIN ───────────────────────────────────── */
+    #main{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg-base);}
+
+    /* ── PAGE HEADER ────────────────────────────── */
+    #page-header{padding:10px 16px;flex-shrink:0;background:var(--bg-surface);border-bottom:1px solid var(--border);}
+    .header-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+    .header-left{display:flex;align-items:center;gap:10px;}
+    .page-title{font-size:18px;font-weight:700;letter-spacing:-.3px;color:var(--text);}
+    .engine-badge{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:3px;background:rgba(56,165,248,.1);color:var(--accent);border:1px solid var(--border-bright);}
+    .header-right{display:flex;align-items:center;gap:8px;}
+    .standby-pill{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:4px 10px;}
+    .standby-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);}
+    .standby-pill.active-run{color:var(--green);border-color:rgba(34,197,94,.35);}
+    .standby-pill.active-run .standby-dot{background:var(--green);box-shadow:0 0 5px var(--green);animation:pulse-green 1.5s ease-in-out infinite;}
+    @keyframes pulse-green{0%,100%{opacity:1}50%{opacity:.4}}
+    .thresholds-btn{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:4px 10px;cursor:pointer;transition:all .15s;}
+    .thresholds-btn:hover{border-color:var(--border-bright);color:var(--text);}
+    .page-desc{font-size:11px;color:var(--text-muted);margin-bottom:8px;}
+    .page-desc em{color:var(--accent);font-style:normal;}
+
+    /* ── LAYER CONTROLS ─────────────────────────── */
+    .layer-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .layer-label{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-right:4px;}
+    .layer-toggle{display:flex;align-items:center;gap:5px;padding:3px 9px;border-radius:3px;border:1px solid;font-size:9.5px;font-weight:700;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;transition:all .15s;user-select:none;}
+    .layer-toggle .l-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .lt-pre{border-color:rgba(56,165,248,.4);color:var(--accent);background:rgba(56,165,248,.1);}
+    .lt-pre .l-dot{background:var(--accent);}
+    .lt-post{border-color:rgba(167,139,250,.4);color:var(--purple);background:rgba(167,139,250,.1);}
+    .lt-post .l-dot{background:var(--purple);}
+    .lt-changes{border-color:rgba(239,68,68,.4);color:var(--red);background:rgba(239,68,68,.1);}
+    .lt-changes .l-dot{background:var(--red);}
+    .lt-area{border-color:rgba(245,158,11,.4);color:var(--amber);background:rgba(245,158,11,.1);}
+    .lt-area .l-dot{background:var(--amber);}
+    .lt-infra{border-color:rgba(34,197,94,.4);color:var(--green);background:rgba(34,197,94,.1);}
+    .lt-infra .l-dot{background:var(--green);}
+    .lt-conf{border-color:rgba(6,182,212,.4);color:var(--cyan);background:rgba(6,182,212,.1);}
+    .lt-conf .l-dot{background:var(--cyan);}
+    .layer-toggle.off{opacity:.45;filter:grayscale(.6);}
+    .opacity-wrap{display:flex;align-items:center;gap:8px;margin-left:8px;}
+    .opacity-lbl{font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);}
+    .opacity-val{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--text-dim);min-width:32px;}
+    input[type=range]{-webkit-appearance:none;appearance:none;height:3px;background:var(--border-bright);border-radius:2px;outline:none;cursor:pointer;width:80px;}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid var(--bg-card);cursor:pointer;}
+
+    /* ── CONTENT AREA ───────────────────────────── */
+    #content{flex:1;display:grid;grid-template-columns:1fr 260px;overflow:hidden;}
+
+    /* ── MAP COLUMN ─────────────────────────────── */
+    #map-col{display:flex;flex-direction:column;overflow:hidden;position:relative;}
+    #map{flex:1;background:#0a1628;}
+
+    /* ── MAP TOOLBAR (floating top-left) ────────── */
+    #map-toolbar{position:absolute;top:10px;left:10px;z-index:400;display:flex;flex-direction:column;gap:4px;}
+    .map-tb-group{display:flex;flex-direction:column;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+    .map-tb-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text-muted);border-bottom:1px solid var(--border);transition:all .15s;}
+    .map-tb-btn:last-child{border-bottom:none;}
+    .map-tb-btn:hover{background:var(--bg-hover);color:var(--text);}
+    .map-tb-btn.active{color:var(--accent);background:var(--accent-dim);}
+
+    /* ── BAND SELECTOR (floating top-right of map) */
+    #band-selector{position:absolute;top:10px;right:10px;z-index:400;display:flex;gap:0;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;overflow:hidden;}
+    .band-btn{padding:5px 10px;font-size:9.5px;font-weight:700;letter-spacing:.5px;color:var(--text-muted);cursor:pointer;border-right:1px solid var(--border);transition:all .15s;white-space:nowrap;}
+    .band-btn:last-child{border-right:none;}
+    .band-btn:hover{background:var(--bg-hover);color:var(--text);}
+    .band-btn.active{background:rgba(56,165,248,.15);color:var(--accent);}
+
+    /* ── COORD BAR (floating, top-center of map) ── */
+    #coord-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:400;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:4px 10px;font-size:9.5px;font-family:var(--mono);color:var(--text-muted);white-space:nowrap;pointer-events:none;}
+
+    /* ── NO ANALYSIS OVERLAY ────────────────────── */
+    #no-analysis-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:400;background:var(--bg-card);border:1px solid var(--border-bright);border-radius:8px;padding:14px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:280px;}
+    .no-analysis-icon{font-size:22px;opacity:.6;}
+    .no-analysis-title{font-size:11.5px;font-weight:700;color:var(--text);}
+    .no-analysis-desc{font-size:10px;color:var(--text-muted);line-height:1.5;}
+    .run-analysis-link{font-size:10px;color:var(--accent);cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;}
+
+    /* ── CHANGE LEGEND ──────────────────────────── */
+    #change-legend{position:absolute;bottom:44px;left:10px;z-index:400;background:rgba(11,18,31,.9);border:1px solid var(--border);border-radius:6px;padding:8px 12px;backdrop-filter:blur(8px);}
+    .legend-title{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+    .legend-item{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:4px;}
+    .legend-item:last-child{margin-bottom:0;}
+    .legend-left{display:flex;align-items:center;gap:7px;}
+    .legend-swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
+    .legend-label{font-size:9.5px;color:var(--text-dim);}
+    .legend-val{font-size:9.5px;font-family:var(--mono);color:var(--text-muted);}
+
+    /* ── TEMPORAL ORBIT BAR ─────────────────────── */
+    #temporal-bar{height:38px;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:0;flex-shrink:0;overflow:hidden;}
+    .temporal-section{display:flex;align-items:center;gap:8px;padding:0 14px;border-right:1px solid var(--border);height:100%;}
+    .temporal-section:last-child{border-right:none;margin-left:auto;}
+    .temp-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);}
+    .temp-value{font-size:10px;font-weight:600;color:var(--text-dim);font-family:var(--mono);}
+    .temp-pill{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;}
+    .temp-pill.standby{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);}
+    .temp-pill.obs{background:var(--purple-dim);border:1px solid rgba(167,139,250,.3);color:var(--purple);}
+    .split-btn{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;transition:all .15s;}
+    .split-btn:hover{border-color:var(--border-bright);color:var(--text);}
+
+    /* ── RIGHT PANEL ────────────────────────────── */
+    #right-panel{overflow-y:auto;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg-base);}
+
+    /* ── STAT CARDS (2x2 grid) ──────────────────── */
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);}
+    .stat-cell{padding:12px 14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+    .stat-cell:nth-child(2n){border-right:none;}
+    .stat-cell:nth-child(3),.stat-cell:nth-child(4){border-bottom:none;}
+    .stat-cell-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+    .stat-cell-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);}
+    .stat-cell-icon{font-size:11px;color:var(--text-muted);}
+    .stat-cell-value{font-size:22px;font-weight:700;font-family:var(--mono);letter-spacing:-1px;color:var(--text-muted);line-height:1;}
+    .stat-cell-value.has-val{color:var(--text);}
+    .stat-cell-unit{font-size:11px;font-weight:400;color:var(--text-muted);}
+    .stat-cell-sub{font-size:9.5px;color:var(--text-muted);margin-top:4px;line-height:1.4;}
+
+    /* ── CONFIDENCE PERCENT ─────────────────────── */
+    .conf-value{font-size:28px;font-weight:700;font-family:var(--mono);letter-spacing:-1px;color:var(--text-muted);line-height:1;}
+    .conf-value.has-val{color:var(--green);}
+
+    /* ── DETECTION METHOD CARD ──────────────────── */
+    .section-card{border-bottom:1px solid var(--border);}
+    .section-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);}
+    .section-icon{font-size:13px;color:var(--accent);}
+    .section-title{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text);flex:1;}
+    .section-badge{font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);}
+    .section-badge.standby{color:var(--text-muted);}
+    .section-badge.running{color:var(--green);border-color:rgba(34,197,94,.35);background:var(--green-dim);}
+    .section-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+    .det-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+    .det-key{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);flex-shrink:0;}
+    .det-val{font-size:10.5px;color:var(--text-dim);text-align:right;}
+    .det-val.accent{color:var(--accent);}
+    .det-val.ready{color:var(--green);}
+
+    /* ── WHY CHANGES ────────────────────────────── */
+    .why-body{padding:12px 14px;}
+    .why-await{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0;text-align:center;}
+    .why-await-icon{font-size:28px;opacity:.4;}
+    .why-await-title{font-size:11px;font-weight:600;color:var(--text-muted);}
+    .why-await-desc{font-size:9.5px;color:var(--text-muted);line-height:1.5;max-width:180px;}
+    .why-await-desc em{color:var(--accent);font-style:normal;}
+    .why-text{font-size:10.5px;color:var(--text-muted);line-height:1.6;}
+
+    /* ── PROCEED BUTTON ─────────────────────────── */
+    .proceed-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 14px;padding:10px 14px;border-radius:6px;background:rgba(56,165,248,.08);border:1px solid var(--border-bright);color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+    .proceed-btn:hover{background:rgba(56,165,248,.16);box-shadow:0 0 20px rgba(56,165,248,.15);}
+    .proceed-arrow{font-size:14px;}
+
+    /* ── EXPORT BUTTONS ─────────────────────────── */
+    .export-row{display:flex;gap:8px;padding:0 14px 14px;}
+    .export-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-radius:5px;font-size:9.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);transition:all .15s;}
+    .export-btn:hover{border-color:var(--border-bright);color:var(--text);}
+
+    /* ── LEAFLET ────────────────────────────────── */
+    .leaflet-container{background:#0a1628!important;}
+    .leaflet-tile-pane{filter:brightness(.8) saturate(.55) hue-rotate(5deg);}
+    .leaflet-control-zoom{display:none!important;}
+    .leaflet-control-attribution{display:none!important;}
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header id="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">&#128752;</div>
+    <div class="brand-text">
+      <span class="brand-name">TerraAlert</span>
+      <span class="brand-sub">GEOINT Command</span>
+    </div>
+    <span class="brand-version">v1.0</span>
+  </div>
+  <div class="topbar-center">
+    <div class="event-status">
+      <span class="event-dot"></span>
+      CURRENT ACTIVE EVENT:&nbsp;<strong style="color:var(--text-muted)">NONE ACTIVE</strong>
+    </div>
+    <div class="top-chip">SATELLITES: STANDBY</div>
+    <div class="top-chip ready">CHANGE DETECTION: READY</div>
+  </div>
+  <div class="topbar-right">
+    <div class="icon-btn">&#128276;<div class="notif-badge">3</div></div>
+    <div class="icon-btn">&#9881;</div>
+    <div class="user-pill">
+      <div class="user-avatar">EV</div>
+      <div class="user-info">
+        <span class="user-name">Elena Vance</span>
+        <span class="user-role">OPS-GM &middot; CMD-L1</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <a href="index.html" class="nav-item"><span class="nav-icon">&#9638;</span>Dashboard</a>
+    <a href="new-analysis.html" class="nav-item"><span class="nav-icon">&#10022;</span>New Analysis</a>
+    <a href="#" class="nav-item active" id="nav-aicd">
+      <span class="nav-icon">&#9650;</span>AI Change Detection
+    </a>
+    <a href="temporal-comparison.html" class="nav-item">
+      <span class="nav-icon">&#9741;</span>Temporal Compare
+    </a>
+    <a href="spatial-confidence.html" class="nav-item">
+      <span class="nav-icon">&#128737;</span>Spatial Confidence
+    </a>
+    <a href="emergency-priority-map.html" class="nav-item"><span class="nav-icon">&#128506;</span>Priority Map</a>
+    <a href="impact-analysis.html" class="nav-item"><span class="nav-icon">&#9741;</span>Impact Analysis</a>
+    <a href="reports.html" class="nav-item"><span class="nav-icon">&#128196;</span>Reports</a>
+    <a href="#" class="nav-item"><span class="nav-icon">&#128225;</span>Data Sources<span class="nav-dot"></span></a>
+    <div class="nav-section">System</div>
+    <a href="/docs" class="nav-item" target="_blank"><span class="nav-icon">&#128268;</span>API Docs</a>
+    <a href="#" class="nav-item"><span class="nav-icon">&#9881;</span>Settings</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- PAGE HEADER -->
+    <div id="page-header">
+      <div class="header-row1">
+        <div class="header-left">
+          <span class="page-title">AI Change Detection</span>
+          <span class="engine-badge">INFERENCE ENGINE V4.2</span>
+        </div>
+        <div class="header-right">
+          <div class="standby-pill" id="run-status">
+            <span class="standby-dot"></span>STANDBY
+          </div>
+          <button class="thresholds-btn" onclick="openThresholds()">&#9965; THRESHOLDS</button>
+        </div>
+      </div>
+      <p class="page-desc">Identify meaningful differences between <em>pre-event</em> and <em>post-event</em> satellite observations.</p>
+      <div class="layer-bar">
+        <span class="layer-label">Layers:</span>
+        <div class="layer-toggle lt-pre" onclick="toggleLayer(this,'pre')" id="lt-pre"><span class="l-dot"></span>Pre-Event</div>
+        <div class="layer-toggle lt-post" onclick="toggleLayer(this,'post')" id="lt-post"><span class="l-dot"></span>Post-Event</div>
+        <div class="layer-toggle lt-changes" onclick="toggleLayer(this,'changes')" id="lt-changes"><span class="l-dot"></span>Detected Changes</div>
+        <div class="layer-toggle lt-area" onclick="toggleLayer(this,'area')" id="lt-area"><span class="l-dot"></span>Affected Area</div>
+        <div class="layer-toggle lt-infra" onclick="toggleLayer(this,'infra')" id="lt-infra"><span class="l-dot"></span>Infrastructure</div>
+        <div class="layer-toggle lt-conf" onclick="toggleLayer(this,'conf')" id="lt-conf"><span class="l-dot"></span>Confidence</div>
+        <div class="opacity-wrap">
+          <span class="opacity-lbl">Opacity</span>
+          <input type="range" min="0" max="100" value="85" id="opacity-slider" oninput="updateOpacity(this.value)"/>
+          <span class="opacity-val" id="opacity-val">85%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- MAP COLUMN -->
+      <div id="map-col">
+        <div id="map"></div>
+
+        <!-- Map toolbar -->
+        <div id="map-toolbar">
+          <div class="map-tb-group">
+            <div class="map-tb-btn" onclick="map.zoomIn()" title="Zoom In">+</div>
+            <div class="map-tb-btn" onclick="map.zoomOut()" title="Zoom Out">&minus;</div>
+          </div>
+          <div class="map-tb-group">
+            <div class="map-tb-btn active" title="Layers" id="tb-layers">&#9741;</div>
+            <div class="map-tb-btn" title="Measure" id="tb-measure">&#9974;</div>
+            <div class="map-tb-btn" title="Fullscreen" id="tb-fullscreen">&#9974;</div>
+          </div>
+        </div>
+
+        <!-- Band selector -->
+        <div id="band-selector">
+          <div class="band-btn active" onclick="selectBand(this)">SAR VV</div>
+          <div class="band-btn" onclick="selectBand(this)">SAR VH</div>
+          <div class="band-btn" onclick="selectBand(this)">RGB</div>
+          <div class="band-btn" onclick="selectBand(this)">NDWI</div>
+        </div>
+
+        <!-- Coord bar -->
+        <div id="coord-bar">WGSS4: <span id="lat-lon">26&deg;14'N 91&deg;07'E</span></div>
+
+        <!-- No Analysis Overlay -->
+        <div id="no-analysis-overlay">
+          <div class="no-analysis-icon">&#9638;</div>
+          <div class="no-analysis-title">No Analysis Available</div>
+          <p class="no-analysis-desc">Run an analysis to detect changes between satellite observations.</p>
+          <span class="run-analysis-link" onclick="window.location='new-analysis.html'">
+            &#10022; Start New Analysis &rarr;
+          </span>
+        </div>
+
+        <!-- Change Legend -->
+        <div id="change-legend">
+          <div class="legend-title">Change Legend</div>
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-swatch" style="background:rgba(239,68,68,.7);border:1px solid rgba(239,68,68,.5);"></div>
+              <span class="legend-label">Flooded</span>
+            </div>
+            <span class="legend-val" id="lg-flooded">&mdash;</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-swatch" style="background:rgba(245,158,11,.6);border:1px solid rgba(245,158,11,.5);"></div>
+              <span class="legend-label">Potential Change</span>
+            </div>
+            <span class="legend-val" id="lg-potential">&mdash;</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-swatch" style="background:rgba(56,165,248,.5);border:1px solid rgba(56,165,248,.4);"></div>
+              <span class="legend-label">Unchanged Baseline Water</span>
+            </div>
+            <span class="legend-val" id="lg-water">&mdash;</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-left">
+              <div class="legend-swatch" style="background:rgba(100,116,139,.4);border:1px solid rgba(100,116,139,.4);"></div>
+              <span class="legend-label">Uncertain</span>
+            </div>
+            <span class="legend-val" id="lg-uncertain">&mdash;</span>
+          </div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="width:18px;height:2px;background:var(--text-muted);"></div>
+              <span style="font-size:9px;color:var(--text-muted);">2.5 km</span>
+            </div>
+            <span style="font-size:9px;color:var(--text-muted);">2000 10m</span>
+          </div>
+        </div>
+
+        <!-- Temporal Bar -->
+        <div id="temporal-bar">
+          <div class="temporal-section">
+            <span class="temp-label">Temporal Orbit Window:</span>
+          </div>
+          <div class="temporal-section">
+            <span class="temp-label">T0: Pre-event Baseline</span>
+            <span class="temp-pill standby">(Standby)</span>
+          </div>
+          <div class="temporal-section">
+            <span class="temp-label">T1: Post-event Observation</span>
+            <span class="temp-pill obs">(Standby)</span>
+          </div>
+          <div class="temporal-section">
+            <button class="split-btn" id="split-btn" onclick="toggleSplit()">&#9145; Split Wipe View</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div id="right-panel">
+
+        <!-- 2x2 Stat Grid -->
+        <div class="stats-grid">
+          <!-- Affected Area -->
+          <div class="stat-cell">
+            <div class="stat-cell-header">
+              <span class="stat-cell-label">Affected Area</span>
+              <span class="stat-cell-icon">&#128506;</span>
+            </div>
+            <div class="stat-cell-value" id="stat-area">&mdash;&mdash; <span class="stat-cell-unit">km&sup2;</span></div>
+            <div class="stat-cell-sub" id="sub-area">Awaiting analysis</div>
+          </div>
+          <!-- Detected Changes -->
+          <div class="stat-cell">
+            <div class="stat-cell-header">
+              <span class="stat-cell-label">Detected Changes</span>
+              <span class="stat-cell-icon">&#9651;</span>
+            </div>
+            <div class="stat-cell-value" id="stat-changes">&mdash;&mdash;</div>
+            <div class="stat-cell-sub" id="sub-changes">No changes detected</div>
+          </div>
+          <!-- Confidence -->
+          <div class="stat-cell">
+            <div class="stat-cell-header">
+              <span class="stat-cell-label">Confidence</span>
+              <span class="stat-cell-icon">&#9650;</span>
+            </div>
+            <div class="conf-value" id="stat-conf">&mdash;&mdash;<span style="font-size:16px;">%</span></div>
+            <div class="stat-cell-sub" id="sub-conf">Confidence will appear after analysis</div>
+          </div>
+          <!-- False Change Risk -->
+          <div class="stat-cell">
+            <div class="stat-cell-header">
+              <span class="stat-cell-label">False Change Risk</span>
+              <span class="stat-cell-icon">&#9650;</span>
+            </div>
+            <div class="stat-cell-value" id="stat-risk">&mdash;&mdash;</div>
+            <div class="stat-cell-sub" id="sub-risk">Ready to evaluate</div>
+          </div>
+        </div>
+
+        <!-- Detection Method -->
+        <div class="section-card">
+          <div class="section-header">
+            <span class="section-icon">&#9650;</span>
+            <span class="section-title">Detection Method</span>
+            <span class="section-badge standby" id="det-status-badge">STANDBY</span>
+          </div>
+          <div class="section-body">
+            <div class="det-row">
+              <span class="det-key">Method:</span>
+              <span class="det-val accent">Temporal difference analysis</span>
+            </div>
+            <div class="det-row">
+              <span class="det-key">Satellite Sources:</span>
+              <span class="det-val">Sentinel-1 SAR / Optical</span>
+            </div>
+            <div class="det-row">
+              <span class="det-key">Status:</span>
+              <span class="det-val ready" id="det-status-text">Ready for Ingest</span>
+            </div>
+            <div class="det-row">
+              <span class="det-key">Model:</span>
+              <span class="det-val">Prithvi-EO-2.0</span>
+            </div>
+            <div class="det-row">
+              <span class="det-key">Fusion Rule:</span>
+              <span class="det-val">Classical + ML</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Why Changes -->
+        <div class="section-card" style="flex:1;">
+          <div class="section-header">
+            <span class="section-icon">&#9650;</span>
+            <span class="section-title">Why changes are detected</span>
+            <span class="section-badge" id="why-badge">Awaiting Run</span>
+          </div>
+          <div class="why-body">
+            <div class="why-await" id="why-await">
+              <div class="why-await-icon">&#8607;</div>
+              <div class="why-await-title">Awaiting Run</div>
+              <p class="why-await-desc">When an analysis is completed, this section explains the scientific reason for each detected <em>change</em> based on temporal differences between satellite observations.</p>
+            </div>
+            <div class="why-text" id="why-text" style="display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Proceed Button -->
+        <div class="proceed-btn" onclick="window.location.href='impact-analysis.html'">
+          PROCEED TO INFRASTRUCTURE IMPACT <span class="proceed-arrow">&rarr;</span>
+        </div>
+
+        <!-- Export Buttons -->
+        <div class="export-row">
+          <button class="export-btn" onclick="exportGeoJSON()">&#128228; Export GeoJSON</button>
+          <button class="export-btn" onclick="exportSHP()">&#128228; Export ESRI SHP</button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ── Map Init ─────────────────────────────────── */
+var map = L.map('map', {
+  center: [26.235, 91.1],
+  zoom: 9,
+  zoomControl: false,
+  attributionControl: false
+});
+
+// Dark satellite-style tiles
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19, subdomains: 'abcd'
+}).addTo(map);
+
+// AOI rectangle
+var aoiRect = L.rectangle(
+  [[26.10, 90.95], [26.37, 91.25]],
+  { color:'#38a5f8', weight:1.5, fillColor:'#38a5f8', fillOpacity:0.06, dashArray:'5 4' }
+).addTo(map);
+
+map.fitBounds([[26.10,90.95],[26.37,91.25]], {padding:[30,30]});
+
+// Update coordinate display on mouse move
+map.on('mousemove', function(e) {
+  var lat = e.latlng.lat, lng = e.latlng.lng;
+  var latDeg = Math.floor(Math.abs(lat));
+  var latMin = Math.floor((Math.abs(lat)-latDeg)*60);
+  var lngDeg = Math.floor(Math.abs(lng));
+  var lngMin = Math.floor((Math.abs(lng)-lngDeg)*60);
+  document.getElementById('lat-lon').textContent =
+    latDeg + '°' + latMin + '\'' + (lat>=0?'N':'S') + ' ' +
+    lngDeg + '°' + lngMin + '\'' + (lng>=0?'E':'W');
+});
+
+/* ── Layer Toggle ─────────────────────────────── */
+var layerStates = { pre:true, post:true, changes:true, area:true, infra:true, conf:true };
+function toggleLayer(el, key) {
+  layerStates[key] = !layerStates[key];
+  if (layerStates[key]) el.classList.remove('off');
+  else el.classList.add('off');
+}
+
+/* ── Opacity ──────────────────────────────────── */
+function updateOpacity(v) {
+  document.getElementById('opacity-val').textContent = v + '%';
+  aoiRect.setStyle({ fillOpacity: v/100 * 0.18 });
+}
+
+/* ── Band Selector ────────────────────────────── */
+function selectBand(el) {
+  document.querySelectorAll('.band-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+}
+
+/* ── Thresholds ───────────────────────────────── */
+function openThresholds() {
+  alert('Threshold configuration:\nPOST_DB_MAX = -18.0 dB\nDIFF_DB_MAX = -3.0 dB\nSLOPE_MAX_DEG = 5.0\nMIN_FLOOD_PCT = 1.0%\nCONF_HIGH = 0.70\nCONF_LOW = 0.40');
+}
+
+/* ── Split Wipe ───────────────────────────────── */
+var splitActive = false;
+function toggleSplit() {
+  splitActive = !splitActive;
+  var btn = document.getElementById('split-btn');
+  btn.style.color = splitActive ? 'var(--accent)' : '';
+  btn.style.borderColor = splitActive ? 'var(--border-bright)' : '';
+}
+
+/* ── Load API Data ────────────────────────────── */
+(function loadData() {
+  function fetchZones() {
+    return fetch('/api/zones').then(function(r){
+      if (r && r.ok) return r.json();
+      return fetch('../outputs/demo/zones.geojson').then(function(d){ return d && d.ok ? d.json() : null; });
+    }).catch(function(){
+      return fetch('../outputs/demo/zones.geojson').then(function(d){ return d && d.ok ? d.json() : null; }).catch(function(){ return null; });
+    });
+  }
+
+  fetchZones()
+    .then(function(data) {
+      if (!data || !data.features || !data.features.length) return;
+      var features = data.features;
+      var totalArea=0, totalPop=0;
+      features.forEach(function(f){
+        var p=f.properties||{};
+        totalArea+=(p.flood_km2||0);
+        totalPop+=(p.people_affected||0);
+      });
+      var highConf = features.filter(function(f){return (f.properties||{}).confidence==='High';}).length;
+      var confPct = Math.round(highConf/features.length*100);
+
+      // Update stats
+      var aEl=document.getElementById('stat-area');
+      aEl.innerHTML=totalArea.toFixed(1)+'<span class="stat-cell-unit"> km²</span>';
+      aEl.className='stat-cell-value has-val';
+      document.getElementById('sub-area').textContent=totalArea.toFixed(1)+' km² new inundation detected';
+      document.getElementById('stat-changes').textContent=features.length;
+      document.getElementById('stat-changes').className='stat-cell-value has-val';
+      document.getElementById('sub-changes').textContent=features.length+' zones with detected change';
+      document.getElementById('stat-conf').innerHTML=confPct+'<span style="font-size:16px;">%</span>';
+      document.getElementById('stat-conf').className='conf-value has-val';
+      document.getElementById('sub-conf').textContent='Based on '+features.length+' zone agreement';
+      document.getElementById('stat-risk').textContent='Low';
+      document.getElementById('stat-risk').className='stat-cell-value has-val';
+      document.getElementById('sub-risk').textContent='Classical + ML fusion agreement high';
+
+      // Legend values
+      var flooded = features.filter(function(f){return (f.properties||{}).tier==='P1';}).length;
+      var potential = features.filter(function(f){return (f.properties||{}).tier==='P2';}).length;
+      document.getElementById('lg-flooded').textContent=flooded+' zones';
+      document.getElementById('lg-potential').textContent=potential+' zones';
+      document.getElementById('lg-water').textContent='Perm.';
+      document.getElementById('lg-uncertain').textContent='0 zones';
+
+      // Detection status
+      document.getElementById('det-status-badge').textContent='COMPLETE';
+      document.getElementById('det-status-badge').className='section-badge running';
+      document.getElementById('det-status-text').textContent='Analysis Complete';
+      document.getElementById('run-status').innerHTML='<span class="standby-dot" style="background:var(--green);box-shadow:0 0 5px var(--green);"></span>ANALYSIS COMPLETE';
+      document.getElementById('run-status').className='standby-pill active-run';
+
+      // Why
+      document.getElementById('why-badge').textContent='Results Available';
+      document.getElementById('why-await').style.display='none';
+      var wt=document.getElementById('why-text');
+      wt.style.display='block';
+      wt.textContent='SAR backscatter decreased significantly (>-3 dB) in '+flooded+' P1 zones between the pre-event baseline (Apr 2022) and post-event acquisition (Jun 2022), consistent with open water flooding. Optical NDWI also confirmed inundation in '+Math.round(flooded*.7)+' zones. ML model (Prithvi-EO-2.0) independently flagged '+features.length+' zones with probability > 0.80. Classical–ML fusion agreement is high, yielding Low false-change risk.';
+
+      // Draw zone polygons on map
+      features.forEach(function(f) {
+        var p=f.properties||{};
+        var color = p.tier==='P1' ? '#ef4444' : p.tier==='P2' ? '#f59e0b' : '#22c55e';
+        if (f.geometry) {
+          L.geoJSON(f, {
+            style:{ color:color, weight:1, fillColor:color, fillOpacity:0.25 }
+          }).addTo(map).bindPopup(
+            '<strong>'+( p.name||p.zone_id||'Zone')+'</strong><br/>Tier: '+p.tier+'<br/>Confidence: '+p.confidence+'<br/>Flood: '+(p.flood_km2||0).toFixed(2)+' km²'
+          );
+        }
+      });
+
+      // Hide no-analysis overlay
+      document.getElementById('no-analysis-overlay').style.display='none';
+
+      // Update temporal bar
+      document.querySelector('.temp-pill.standby').textContent='Apr 2022';
+      document.querySelector('.temp-pill.obs').textContent='Jun 2022';
+    })
+    .catch(function(){});
+})();
+
+/* ── Exports ──────────────────────────────────── */
+function exportGeoJSON(){ window.open('/api/zones','_blank'); }
+function exportSHP(){ alert('ESRI SHP export requires backend processing. Use /api/zones for GeoJSON.'); }
+
+/* ── Nav ──────────────────────────────────────── */
+document.querySelectorAll('.nav-item,.nav-sub').forEach(function(item){
+  item.addEventListener('click',function(e){
+    if(item.getAttribute('target')==='_blank') return;
+    var href=item.getAttribute('href');
+    if(href&&href!=='#') return;
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

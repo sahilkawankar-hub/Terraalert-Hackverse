@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Incident Reports Registry — DisasterIntel GEOINT Command</title>
+  <meta name="description" content="Operational dossiers and post-event disaster analytics registry."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-deep: #060a12;
+      --bg-base: #0a0f1e;
+      --bg-surface: #0d1525;
+      --bg-card: #111827;
+      --bg-card-alt: #0f1720;
+      --bg-hover: #1a2540;
+      --border: rgba(56, 165, 248, 0.12);
+      --border-bright: rgba(56, 165, 248, 0.28);
+      --accent: #38a5f8;
+      --accent-dim: rgba(56, 165, 248, 0.08);
+      --accent-glow: rgba(56, 165, 248, 0.25);
+      --green: #22c55e;
+      --green-dim: rgba(34, 197, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.15);
+      --purple: #a78bfa;
+      --cyan: #06b6d4;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --sidebar-w: 200px;
+      --topbar-h: 46px;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-deep);
+      color: var(--text);
+      font-size: 12.5px;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+
+    /* ── TOPBAR ─────────────────────────────────────── */
+    #topbar {
+      height: var(--topbar-h);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #1e40af 0%, #38a5f8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 0 10px rgba(56,165,248,0.3);
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand-name { font-size: 12px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    .brand-sub { font-size: 8.5px; font-weight: 600; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+    .brand-version {
+      font-size: 9px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    .topbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow-x: auto;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .status-badge.standby {
+      color: var(--text-muted);
+    }
+    .status-badge.ready {
+      color: var(--green);
+      border-color: rgba(34, 197, 94, 0.25);
+    }
+    .status-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+    .status-badge .dot.muted {
+      background: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+    .icon-btn {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { border-color: var(--border-bright); color: var(--text); }
+    .notif-badge {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+    .user-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7 0%, #38a5f8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .user-info { display: flex; flex-direction: column; line-height: 1.15; }
+    .user-name { font-size: 11px; font-weight: 600; color: var(--text); }
+    .user-role { font-size: 8.5px; color: var(--text-muted); font-family: var(--mono); }
+
+    /* ── LAYOUT ──────────────────────────────────────── */
+    #layout { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── SIDEBAR ─────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-item:hover {
+      color: var(--text);
+      background: var(--bg-hover);
+    }
+    .nav-item.active {
+      color: var(--accent);
+      background: rgba(56, 165, 248, 0.08);
+      border-left-color: var(--accent);
+    }
+    .nav-icon { width: 16px; font-size: 13px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+    .nav-dot {
+      margin-left: auto;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+    .nav-section {
+      padding: 12px 16px 4px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    #sidebar-footer {
+      margin-top: auto;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(6, 10, 18, 0.6);
+    }
+    .sf-pipe {
+      display: flex;
+      align-items: center;
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+    .sf-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      margin-right: 6px;
+    }
+    .sf-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+    }
+    .sf-val { color: var(--text-dim); }
+
+    /* ── MAIN CONTENT ────────────────────────────────── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-base);
+    }
+
+    /* PAGE HEADER */
+    .page-header {
+      padding: 18px 24px 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+    }
+    .ph-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .ph-title-row h1 {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+    .registry-tag {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--mono);
+    }
+    .ph-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .ph-stats-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ph-kpi-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+    }
+    .ph-kpi-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .ph-kpi-val.crit { color: var(--red); }
+    .btn-create {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(56,165,248,0.5);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-create:hover {
+      background: #1d4ed8;
+      box-shadow: 0 0 12px rgba(37,99,235,0.4);
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+    }
+    .search-box input {
+      width: 100%;
+      height: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 32px 0 30px;
+      color: var(--text);
+      font-size: 11.5px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-box input:focus { border-color: var(--accent); }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .search-kbd {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 9px;
+      color: var(--text-muted);
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-family: var(--mono);
+    }
+    .filter-select {
+      height: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 10px;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: var(--font);
+      outline: none;
+      cursor: pointer;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+    .view-switcher {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-left: auto;
+    }
+    .view-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 30px;
+      padding: 0 10px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+    .view-btn.active {
+      background: rgba(56, 165, 248, 0.15);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ACTIVE FILTERS STRIP */
+    .active-filters-strip {
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border);
+      font-size: 10.5px;
+    }
+    .af-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+    .af-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+    .af-chip-close {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .af-chip-close:hover { color: var(--red); }
+    .af-clear {
+      margin-left: 6px;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+    }
+    .af-sample-toggle {
+      margin-left: auto;
+      background: rgba(56, 165, 248, 0.1);
+      border: 1px solid var(--border-bright);
+      color: var(--accent);
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .af-sample-toggle:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    /* CONTENT BODY & EMPTY STATE */
+    .content-container {
+      flex: 1;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .reports-card-box {
+      flex: 1;
+      background: var(--bg-card-alt);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 420px;
+    }
+
+    /* Empty state display */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .empty-icon-wrap {
+      width: 54px;
+      height: 54px;
+      border: 1.5px dashed rgba(56, 165, 248, 0.35);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--accent);
+      margin-bottom: 16px;
+      background: rgba(56, 165, 248, 0.04);
+    }
+    .empty-state h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: -0.2px;
+    }
+    .empty-state p {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 440px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* Reports Table (when reports loaded) */
+    .reports-table-wrap {
+      display: none;
+      flex: 1;
+      overflow-x: auto;
+    }
+    .reports-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    .reports-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .reports-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(56, 165, 248, 0.08);
+      color: var(--text-dim);
+      vertical-align: middle;
+    }
+    .reports-table tr:hover td {
+      background: var(--bg-hover);
+    }
+    .rep-id {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .rep-title {
+      font-weight: 600;
+      color: #fff;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .rep-aoi {
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+    .badge-p1 {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--red-dim);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: var(--red);
+      font-size: 9.5px;
+      font-weight: 700;
+      font-family: var(--mono);
+    }
+    .badge-complete {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 3px;
+      background: var(--green-dim);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: var(--green);
+      font-size: 9.5px;
+      font-weight: 700;
+      font-family: var(--mono);
+    }
+    .rep-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .rep-action-btn:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    /* FOOTER BAR */
+    .ledger-footer {
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      background: var(--bg-surface);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .page-link {
+      color: var(--text-dim);
+      text-decoration: none;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+    .page-link.disabled {
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .btn-export {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 5px 12px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      font-family: var(--font);
+      text-transform: uppercase;
+    }
+    .btn-export:hover {
+      border-color: var(--border-bright);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <a href="index.html" class="topbar-brand">
+      <div class="brand-icon">&#128752;</div>
+      <div class="brand-text">
+        <span class="brand-name">DisasterIntel</span>
+        <span class="brand-sub">GEOINT COMMAND</span>
+      </div>
+      <span class="brand-version">V3.4</span>
+    </a>
+
+    <div class="topbar-center">
+      <div class="status-badge standby">
+        <span class="dot muted"></span>
+        <span>CURRENT ACTIVE EVENT: <strong style="color:var(--text-dim);" id="top-active-event">NONE ACTIVE</strong></span>
+      </div>
+      <div class="status-badge standby">
+        <span>S-1A / S-2B STANDBY</span>
+      </div>
+      <div class="status-badge ready">
+        <span class="dot"></span>
+        <span>CHANGE DETECTION: READY</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="icon-btn" title="System Notifications">
+        &#128276;
+        <span class="notif-badge">1</span>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar">EV</div>
+        <div class="user-info">
+          <span class="user-name">Dr. Elena Vance</span>
+          <span class="user-role">OPS-DIR &bull; CMD-L1</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div id="layout">
+
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">&#9638;</span> Dashboard
+      </a>
+      <a href="new-analysis.html" class="nav-item">
+        <span class="nav-icon">&#10022;</span> New Analysis
+      </a>
+      <a href="ai-change-detection.html" class="nav-item">
+        <span class="nav-icon">&#9650;</span> AI Change Detection
+      </a>
+      <a href="temporal-comparison.html" class="nav-item">
+        <span class="nav-icon">&#9741;</span> Temporal Compare
+      </a>
+      <a href="spatial-confidence.html" class="nav-item">
+        <span class="nav-icon">&#128737;</span> Spatial Confidence
+      </a>
+      <a href="emergency-priority-map.html" class="nav-item">
+        <span class="nav-icon">&#128506;</span> Emergency Priority Map
+      </a>
+      <a href="impact-analysis.html" class="nav-item">
+        <span class="nav-icon">&#9741;</span> Impact Analysis
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">&#9889;</span> Events
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="reports.html" class="nav-item active">
+        <span class="nav-icon">&#128196;</span> Reports
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">&#128225;</span> Data Sources
+        <span class="nav-dot"></span>
+      </a>
+      <div class="nav-section">System</div>
+      <a href="/docs" class="nav-item" target="_blank">
+        <span class="nav-icon">&#128268;</span> API Docs
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">&#9881;</span> Settings
+      </a>
+
+      <!-- Sidebar footer -->
+      <div id="sidebar-footer">
+        <div class="sf-pipe">
+          <span class="sf-dot"></span>
+          <span>PIPELINE ACTIVE</span>
+          <span style="margin-left:auto;font-size:8px;color:var(--text-muted);">SYNC-01</span>
+        </div>
+        <div class="sf-row">
+          <span>LAST EO INGEST:</span>
+          <span class="sf-val">4m ago (Sentinel-1 SAR)</span>
+        </div>
+        <div class="sf-row">
+          <span style="font-size:8px;">MODIS/PLANET</span>
+          <span class="sf-val" style="color:var(--green);font-weight:700;">NOMINAL</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN PAGE -->
+    <main id="main">
+
+      <!-- HEADER ROW -->
+      <div class="page-header">
+        <div>
+          <div class="ph-title-row">
+            <h1>Incident Reports</h1>
+            <span class="registry-tag">REGISTRY</span>
+          </div>
+          <div class="ph-sub">Operational dossiers and post-event disaster analytics.</div>
+        </div>
+
+        <div class="ph-stats-row">
+          <div class="ph-kpi-chip">
+            <span>TOTAL</span>
+            <span class="ph-kpi-val" id="kpi-total">0</span>
+          </div>
+          <div class="ph-kpi-chip">
+            <span>COMPLETE</span>
+            <span class="ph-kpi-val" id="kpi-complete">0</span>
+          </div>
+          <div class="ph-kpi-chip">
+            <span>IN PROGRESS</span>
+            <span class="ph-kpi-val" id="kpi-progress">0</span>
+          </div>
+          <div class="ph-kpi-chip">
+            <span>CRITICAL P1</span>
+            <span class="ph-kpi-val crit" id="kpi-p1">0</span>
+          </div>
+          <a href="new-analysis.html" class="btn-create">
+            + START NEW ANALYSIS
+          </a>
+        </div>
+      </div>
+
+      <!-- FILTER CONTROLS -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <span class="search-icon">&#128269;</span>
+          <input type="text" id="report-search" placeholder="Filter reports by event or region..." oninput="handleSearch()"/>
+          <span class="search-kbd">&#8984;K</span>
+        </div>
+
+        <select class="filter-select" id="filter-type" onchange="applyFilters()">
+          <option value="all">Type: All</option>
+          <option value="flood">Flood Inundation</option>
+          <option value="cyclone">Tropical Cyclone</option>
+          <option value="wildfire">Wildfire Burn Scar</option>
+          <option value="landslide">Landslide Mass Wasting</option>
+        </select>
+
+        <select class="filter-select" id="filter-region" onchange="applyFilters()">
+          <option value="all">Region: Global</option>
+          <option value="south-asia">South Asia / Assam</option>
+          <option value="east-asia">East Asia</option>
+          <option value="americas">Americas</option>
+          <option value="europe">Europe</option>
+        </select>
+
+        <select class="filter-select" id="filter-priority" onchange="applyFilters()">
+          <option value="all">Priority: All</option>
+          <option value="p1">Critical P1</option>
+          <option value="p2">High P2</option>
+          <option value="p3">Medium P3</option>
+        </select>
+
+        <select class="filter-select" id="filter-time" onchange="applyFilters()">
+          <option value="30d">Last 30 Day</option>
+          <option value="7d">Last 7 Days</option>
+          <option value="90d">Last 90 Days</option>
+          <option value="all">All Time</option>
+        </select>
+
+        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+          <option value="all">Status: All</option>
+          <option value="complete">Complete</option>
+          <option value="in_progress">In Progress</option>
+          <option value="archived">Archived</option>
+        </select>
+
+        <div class="view-switcher">
+          <button class="view-btn active" id="btn-view-table" onclick="setView('table')">
+            &#9638; Table
+          </button>
+          <button class="view-btn" id="btn-view-grid" onclick="setView('grid')">
+            &#8862; Grid
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTIVE FILTERS -->
+      <div class="active-filters-strip">
+        <span class="af-label">ACTIVE FILTERS:</span>
+        <div class="af-chip">Disaster: All <span class="af-chip-close">&times;</span></div>
+        <div class="af-chip">Status: Active &amp; Historical <span class="af-chip-close">&times;</span></div>
+        <div class="af-chip">Sort: Latest First <span class="af-chip-close">&times;</span></div>
+        <button class="af-clear" onclick="resetFilters()">CLEAR ALL</button>
+
+        <button class="af-sample-toggle" onclick="toggleSampleDossier()" id="btn-sample-toggle">
+          &#9889; Load Sample Dossier (Assam Floods 2022)
+        </button>
+      </div>
+
+      <!-- MAIN CONTAINER -->
+      <div class="content-container">
+        <div class="reports-card-box">
+
+          <!-- EMPTY STATE (Default) -->
+          <div class="empty-state" id="empty-state">
+            <div class="empty-icon-wrap">
+              &#128196;
+            </div>
+            <h3>No reports yet</h3>
+            <p>Completed disaster analyses will appear here once an incident workflow is initiated.</p>
+            <a href="new-analysis.html" class="btn-create" style="margin-bottom: 12px;">
+              + START NEW ANALYSIS
+            </a>
+            <div style="font-size:11px;color:var(--text-muted);">
+              Or click <a href="javascript:void(0)" onclick="toggleSampleDossier()" style="color:var(--accent);text-decoration:none;font-weight:600;">Load Sample Dossier</a> to review the certified Assam Flood dossier.
+            </div>
+          </div>
+
+          <!-- TABLE STATE (When populated) -->
+          <div class="reports-table-wrap" id="reports-table-wrap">
+            <table class="reports-table">
+              <thead>
+                <tr>
+                  <th>Dossier ID</th>
+                  <th>Incident Event</th>
+                  <th>Sensor Feeds</th>
+                  <th>Flooded Area</th>
+                  <th>Population At Risk</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Certified Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="reports-tbody">
+                <!-- Dynamically populated or filled via sample -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="ledger-footer">
+        <div id="footer-count">0 reports available &bull; Retention policy: 180 days</div>
+        <div class="pagination">
+          <span class="page-link disabled">&larr; PREVIOUS</span>
+          <span style="color:#fff;font-family:var(--mono);">1 of 1</span>
+          <span class="page-link disabled">NEXT &rarr;</span>
+        </div>
+        <button class="btn-export" onclick="exportLedger()">
+          &#8681; EXPORT LEDGER
+        </button>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Demo dossiers repository
+    const SAMPLE_REPORTS = [
+      {
+        id: "RPT-2022-ASM-001",
+        title: "Assam Floods — Brahmaputra Basin Wave 2",
+        aoi: "Assam, India • 26.20°N, 92.93°E",
+        sensors: "Sentinel-1A SAR + Sentinel-2 MSI",
+        area: "412.5 km²",
+        population: "142,300 civilians",
+        priority: "CRITICAL P1",
+        status: "COMPLETE",
+        date: "2022-06-18 14:30 UTC"
+      },
+      {
+        id: "RPT-2022-ASM-002",
+        title: "Barpeta District Flash Inundation",
+        aoi: "Barpeta, Assam • 26.32°N, 91.00°E",
+        sensors: "Sentinel-1B SAR GRD (VV+VH)",
+        area: "128.4 km²",
+        population: "48,600 civilians",
+        priority: "HIGH P2",
+        status: "COMPLETE",
+        date: "2022-06-19 08:15 UTC"
+      }
+    ];
+
+    let currentReports = [];
+
+    // Check if query param or storage has demo report
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('sample') === '1' || localStorage.getItem('terraalert_sample_reports') === '1') {
+        loadSampleData();
+      }
+    });
+
+    function toggleSampleDossier() {
+      if (currentReports.length === 0) {
+        loadSampleData();
+      } else {
+        unloadSampleData();
+      }
+    }
+
+    function loadSampleData() {
+      currentReports = [...SAMPLE_REPORTS];
+      localStorage.setItem('terraalert_sample_reports', '1');
+      renderReports();
+      document.getElementById('btn-sample-toggle').textContent = '✕ Reset to Empty State';
+    }
+
+    function unloadSampleData() {
+      currentReports = [];
+      localStorage.removeItem('terraalert_sample_reports');
+      renderReports();
+      document.getElementById('btn-sample-toggle').innerHTML = '&#9889; Load Sample Dossier (Assam Floods 2022)';
+    }
+
+    function renderReports() {
+      const emptyState = document.getElementById('empty-state');
+      const tableWrap = document.getElementById('reports-table-wrap');
+      const tbody = document.getElementById('reports-tbody');
+      const totalKpi = document.getElementById('kpi-total');
+      const compKpi = document.getElementById('kpi-complete');
+      const progKpi = document.getElementById('kpi-progress');
+      const p1Kpi = document.getElementById('kpi-p1');
+      const footerCount = document.getElementById('footer-count');
+      const topEvent = document.getElementById('top-active-event');
+
+      if (currentReports.length === 0) {
+        emptyState.style.display = 'flex';
+        tableWrap.style.display = 'none';
+        totalKpi.textContent = '0';
+        compKpi.textContent = '0';
+        progKpi.textContent = '0';
+        p1Kpi.textContent = '0';
+        footerCount.innerHTML = '0 reports available &bull; Retention policy: 180 days';
+        topEvent.textContent = 'NONE ACTIVE';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      tableWrap.style.display = 'block';
+
+      totalKpi.textContent = currentReports.length;
+      compKpi.textContent = currentReports.filter(r => r.status === 'COMPLETE').length;
+      progKpi.textContent = currentReports.filter(r => r.status === 'IN PROGRESS').length;
+      p1Kpi.textContent = currentReports.filter(r => r.priority.includes('P1')).length;
+      footerCount.innerHTML = `${currentReports.length} reports available &bull; Retention policy: 180 days`;
+      topEvent.textContent = 'ASSAM FLOODS 2022';
+
+      tbody.innerHTML = currentReports.map(r => `
+        <tr>
+          <td><span class="rep-id">${r.id}</span></td>
+          <td>
+            <span class="rep-title">${r.title}</span>
+            <span class="rep-aoi">${r.aoi}</span>
+          </td>
+          <td><span style="font-family:var(--mono);font-size:10px;">${r.sensors}</span></td>
+          <td><strong style="color:#fff;">${r.area}</strong></td>
+          <td>${r.population}</td>
+          <td><span class="badge-p1">${r.priority}</span></td>
+          <td><span class="badge-complete">&#10003; ${r.status}</span></td>
+          <td style="font-family:var(--mono);font-size:10.5px;">${r.date}</td>
+          <td>
+            <a href="report-details.html?id=${r.id}" class="rep-action-btn">
+              View Dossier &rarr;
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function handleSearch() {
+      const q = document.getElementById('report-search').value.toLowerCase();
+      if (currentReports.length === 0) return;
+      const rows = document.querySelectorAll('#reports-tbody tr');
+      rows.forEach(tr => {
+        const text = tr.innerText.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    function applyFilters() {
+      // Filtering logic for demonstration
+      if (currentReports.length > 0) {
+        renderReports();
+      }
+    }
+
+    function resetFilters() {
+      document.getElementById('report-search').value = '';
+      document.getElementById('filter-type').value = 'all';
+      document.getElementById('filter-region').value = 'all';
+      document.getElementById('filter-priority').value = 'all';
+      document.getElementById('filter-time').value = '30d';
+      document.getElementById('filter-status').value = 'all';
+      if (currentReports.length > 0) renderReports();
+    }
+
+    function setView(mode) {
+      document.getElementById('btn-view-table').classList.toggle('active', mode === 'table');
+      document.getElementById('btn-view-grid').classList.toggle('active', mode === 'grid');
+    }
+
+    function exportLedger() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentReports, null, 2));
+      const dlAnchorElem = document.createElement('a');
+      dlAnchorElem.setAttribute("href", dataStr);
+      dlAnchorElem.setAttribute("download", "incident_reports_ledger.json");
+      dlAnchorElem.click();
+    }
+  </script>
+</body>
+</html>
