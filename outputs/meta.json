@@ -40,7 +40,8 @@
   },
   "fallbacks": {
     "s2": "not run / skipped",
-    "ml": "not run"
+    "ml": "not run",
+    "calibration": "no overlapping reference"
   },
   "demo": false,
   "mock": false,
