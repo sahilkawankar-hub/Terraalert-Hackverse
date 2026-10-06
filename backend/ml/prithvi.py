@@ -98,11 +98,18 @@ def _require_terratorch():
     """Import terratorch or raise ImportError with a clear message."""
     try:
         import terratorch  # noqa: F401
-        from terratorch.models.backbones.prithvi_model_factory import LightningInferenceModel
+        try:
+            from terratorch.models.backbones.prithvi_model_factory import LightningInferenceModel
+        except ImportError:
+            try:
+                from terratorch.models import LightningInferenceModel
+            except ImportError:
+                from terratorch.cli_tools import LightningInferenceModel
         return LightningInferenceModel
-    except ImportError as exc:
+    except Exception as exc:
+        logger.warning("terratorch import error details: %s", exc)
         raise ImportError(
-            "terratorch is not installed. Install requirements-ml.txt:\n"
+            f"terratorch is not installed or missing subdependencies ({exc}). Install requirements-ml.txt:\n"
             "  pip install -r requirements-ml.txt"
         ) from exc
 
