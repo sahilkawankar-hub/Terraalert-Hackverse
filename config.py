@@ -30,7 +30,7 @@ POST_START: date = date(2022, 6, 17)
 POST_END: date = date(2022, 6, 30)
 
 # ── Google Earth Engine ──────────────────────────────────────────────────────
-GEE_PROJECT: str = os.environ.get("GEE_PROJECT", "<<YOUR_CLOUD_PROJECT_ID>>")
+GEE_PROJECT: str = os.environ.get("GEE_PROJECT", "terraalert-hackverse")
 
 # ── Reference grid ───────────────────────────────────────────────────────────
 GRID_CRS: str = "EPSG:32646"          # UTM zone 46N (covers Assam)
@@ -38,7 +38,7 @@ PIXEL_SIZE: int = 20                   # metres
 
 # ── Sentinel-1 ───────────────────────────────────────────────────────────────
 S1_PASS: str = "DESCENDING"
-S1_RELATIVE_ORBIT: Optional[int] = None  # set after listing available scenes
+S1_RELATIVE_ORBIT: Optional[int] = 150
 S1_BAND: str = "VV"
 
 # ── Classical detection thresholds ───────────────────────────────────────────
