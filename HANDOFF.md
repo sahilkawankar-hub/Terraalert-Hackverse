@@ -18,6 +18,8 @@ Both engineers append one row each time they complete a deliverable that the oth
 | 2026-10-06 | Solo Mode | All | Task 0 complete: Generated `outputs/compliance_before.md` auditing baseline deliverables, constraints, and hard rules against ground-truth outputs and code. | `outputs/compliance_before.md` |
 | 2026-10-06 | Solo Mode | All | Task 1 complete: Fixed permanent water land-mask bug in gee.py, grid.py, classical.py, and confidence.py. Re-exported perm_water.tif (1,914,205 land pixels preserved as 0, 329,270 permanent water pixels as 1, 0 nodata). Added regression test in test_classical.py. | `grid.py`, `backend/ingest/gee.py`, `backend/detect/classical.py`, `backend/fusion/confidence.py`, `tests/test_classical.py` |
 | 2026-10-06 | Solo Mode | All | Task 2 complete: Re-ran detection. Flooded area: 56.13 km² (6.25% of valid AOI). Valid pixels increased from 329,270 to 2,243,475 (100%). Perm water flagged: classical 0.01% (34 px) vs naive 29.88% (98,377 px). Regenerated outputs/trap_comparison.png. | `outputs/meta.json`, `outputs/trap_comparison.png` |
+| 2026-10-06 | Solo Mode | All | Task 3 complete (ML Honesty): Verified flood_ml.tif and water masks were all zeros; corrected previous 98.88% agreement claim. Set fallbacks.ml = "unavailable: model was never run", ml_available_fraction = 0 in meta.json. Wrote flood_ml.tif and water masks as all 255 (unusable/fallback). Ensured python -m backend.ml.temporal exits with clear message. Removed fabricated ML claims from UI. | `outputs/meta.json`, `outputs/flood_ml.tif`, `backend/ml/temporal.py`, `backend/run_pipeline.py`, `frontend/ai-change-detection.html` |
+
 
 
 

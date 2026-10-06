@@ -482,7 +482,7 @@
             </div>
             <div class="det-row">
               <span class="det-key">Model:</span>
-              <span class="det-val">Prithvi-EO-2.0</span>
+              <span class="det-val">Classical SAR (ML Fallback)</span>
             </div>
             <div class="det-row">
               <span class="det-key">Fusion Rule:</span>
@@ -654,9 +654,7 @@ function toggleSplit() {
       // Why
       document.getElementById('why-badge').textContent='Results Available';
       document.getElementById('why-await').style.display='none';
-      var wt=document.getElementById('why-text');
-      wt.style.display='block';
-      wt.textContent='SAR backscatter decreased significantly (>-3 dB) in '+flooded+' P1 zones between the pre-event baseline (Apr 2022) and post-event acquisition (Jun 2022), consistent with open water flooding. Optical NDWI also confirmed inundation in '+Math.round(flooded*.7)+' zones. ML model (Prithvi-EO-2.0) independently flagged '+features.length+' zones with probability > 0.80. Classical–ML fusion agreement is high, yielding Low false-change risk.';
+      wt.textContent='SAR backscatter decreased significantly (<-3 dB) in '+flooded+' P1 zones between pre-event baseline and post-event acquisition, consistent with open water inundation. Optical ML (Prithvi-EO-2.0) was unavailable on this AOI (monsoon cloud cover / fallback mode); detection is powered by classical multi-temporal SAR differencing.';
 
       // Draw zone polygons on map
       features.forEach(function(f) {

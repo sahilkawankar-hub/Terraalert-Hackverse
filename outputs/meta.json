@@ -21,7 +21,7 @@
   "grid_crs": "EPSG:32646",
   "pixel_size_m": 20,
   "s2_cloud_fractions": null,
-  "ml_available_fraction": null,
+  "ml_available_fraction": 0,
   "model_name": "ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11",
   "model_fallback": "ibm-nasa-geospatial/Prithvi-EO-1.0-100M-sen1floods11",
   "thresholds": {
@@ -40,7 +40,7 @@
   },
   "fallbacks": {
     "s2": "not run / skipped",
-    "ml": "not run",
+    "ml": "unavailable: terratorch is not installed or missing subdependencies (No module named 'terratorch'). Install requirements-ml.txt:\n  pip install -r requirements-ml.txt",
     "calibration": "no overlapping reference"
   },
   "demo": false,

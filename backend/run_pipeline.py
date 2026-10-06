@@ -142,6 +142,7 @@ def _stage_ml(force: bool, skip_ml: bool) -> bool:
 
     ml_module = ROOT_DIR / "backend" / "ml"
     candidates = [
+        ml_module / "temporal.py",
         ml_module / "infer.py",
         ml_module / "predict.py",
         ml_module / "__main__.py",
