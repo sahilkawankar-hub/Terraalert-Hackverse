@@ -80,3 +80,54 @@ ENGINEERING RULES
 - Verify every external dataset ID, API and package version before using it; catalogs change.
 - Work only in the folders the task names. Stop after each phase and wait for "continue".
 - Large rasters stay out of git (data/raw/, outputs/*.tif); outputs/demo/ is committed.
+
+---
+
+## TWO-ENGINEER MODE (overrides SOLO MODE)
+
+- **Person A (AI + detection) owns**:
+  - `backend/detect/`
+  - `backend/ml/`
+  - `backend/fusion/`
+  - `backend/metrics/`
+  - `scripts/run_ml_colab.ipynb`
+  - Sentinel-2 part of `backend/ingest/gee.py`
+
+- **Person B (zones + product) owns**:
+  - `backend/zones/`
+  - `backend/priority/`
+  - `backend/report/`
+  - `backend/api/`
+  - `backend/run_pipeline.py`
+  - `scripts/build_demo_bundle.py`
+  - `README.md`, `SOURCES.md`, `LIMITATIONS.md`
+
+- **Folder boundaries**: Never edit a file in the other person's folders. If a change is needed there, write it in `HANDOFF.md` and tell the user.
+
+- **`config.py` is add-only**:
+  - Person A adds settings under `# --- A settings ---`.
+  - Person B adds settings under `# --- B settings ---`.
+  - Never rename or change an existing value without telling the user.
+
+- **`meta.json` is always written through `backend/common/meta.py`**:
+  - `update_meta(path, value)` loads the file, merges one key, and writes it back atomically.
+  - Never overwrite the whole file.
+
+- **Interface contract** (do not change a signature without writing it in `HANDOFF.md`):
+  - `backend/fusion/confidence.py`:
+    ```python
+    add_zone_confidence(zones: GeoDataFrame, outputs_dir=OUT_DIR) -> GeoDataFrame
+    ```
+    - Input `zones` is in `GRID_CRS`.
+    - Adds columns:
+      - `confidence` ("High" | "Medium" | "Low")
+      - `confidence_score` (float 0–1)
+      - `reason` (str)
+      - `conf_detail` (dict: `agreement_ratio`, `terrain_penalty`, `time_penalty`, `margin_score`, `method_penalty`)
+    - Reads required rasters directly from `outputs/`.
+    - If this module or its input rasters do not exist, callers fall back to:
+      - `confidence="Medium"`, `confidence_score=0.5`, `reason="confidence module not run yet"`
+      - Record fallback under `fallbacks.confidence` in `meta.json`.
+  - **Flood mask for zones**: `outputs/flood_fused.tif` if it exists, else `outputs/flood_classical.tif`.
+  - `backend/priority/score.py`: `rescore(zones, weights)` belongs to B and is used by the API.
+

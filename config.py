@@ -84,3 +84,8 @@ ML_TILE: int = 512
 ML_OVERLAP: int = 64
 ML_PROB_HIGH: float = 0.8
 FUSION_RULE: str = "classical_plus_ml"
+
+# --- A settings ---
+
+# --- B settings ---
+

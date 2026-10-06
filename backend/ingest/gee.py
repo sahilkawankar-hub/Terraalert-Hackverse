@@ -36,6 +36,7 @@ if str(ROOT_DIR) not in sys.path:
 import config
 import grid
 from backend.common.log import get_logger
+from backend.common.meta import update_meta
 
 logger = get_logger("gee_ingest")
 
@@ -302,14 +303,8 @@ def ingest_pop(force: bool = False) -> Path:
 
 
 def update_meta_json() -> None:
-    """Update outputs/meta.json while preserving existing keys."""
+    """Update outputs/meta.json using atomic merge."""
     meta_path = config.OUTPUTS_DIR / "meta.json"
-    meta: Dict[str, Any] = {}
-    if meta_path.exists():
-        try:
-            meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        except Exception as e:
-            logger.warning("Could not parse existing meta.json: %s", e)
 
     orbit = config.S1_RELATIVE_ORBIT
     pre_date_str = "2022-05-06" if orbit == 150 else config.PRE_START.isoformat()
@@ -319,7 +314,7 @@ def update_meta_json() -> None:
     d2 = datetime.date.fromisoformat(post_date_str)
     time_gap = (d2 - d1).days
 
-    meta.update({
+    update_payload = {
         "event": config.EVENT_NAME,
         "satellite": "Sentinel-1A",
         "instrument_mode": "IW",
@@ -344,13 +339,13 @@ def update_meta_json() -> None:
             "min_flood_pct": config.MIN_FLOOD_PCT,
         },
         "weights": config.WEIGHTS,
-        "fallbacks": meta.get("fallbacks", {"s2": "not run / skipped", "ml": "not run"}),
+        "fallbacks": {"s2": "not run / skipped", "ml": "not run"},
         "demo": False,
         "mock": False,
         "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-    })
+    }
 
-    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    update_meta(meta_path, update_payload)
     logger.info("Updated %s", meta_path)
 
 

@@ -23,6 +23,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import config
+from backend.common.meta import update_meta
 from backend.priority.score import rescore
 
 
@@ -281,8 +282,7 @@ def generate_mock_bundle(output_dir: Path | None = None) -> dict[str, Path]:
         "pixel_size_m": config.PIXEL_SIZE,
     }
 
-    with open(meta_path, "w", encoding="utf-8") as f:
-        json.dump(meta_payload, f, indent=2)
+    update_meta(meta_path, meta_payload)
 
     return {
         "zones": zones_path,
