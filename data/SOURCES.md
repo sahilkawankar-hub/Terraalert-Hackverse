@@ -32,3 +32,13 @@ Grid: EPSG:32646 at 20m resolution
 - **Band**: `population` (people per pixel, count-preserving volume resampled to 20m)
 - **File**: `outputs/pop.tif` (nodata -9999)
 - **Attribution**: WorldPop (www.worldpop.org - School of Geography and Environmental Science, University of Southampton).
+
+### 5. OpenStreetMap — Roads and Facilities
+- **Source**: OpenStreetMap contributors via Overpass API
+- **Licence**: Open Database Licence (ODbL) v1.0 — https://opendatacommons.org/licenses/odbl/
+- **Access date**: 2026-10-06
+- **Road tags queried**: highway ∈ ['motorway', 'trunk', 'primary', 'secondary', 'tertiary']
+- **Facility tags queried**: amenity ∈ ['hospital', 'clinic', 'school', 'shelter', 'fire_station', 'police'], healthcare ∈ ['hospital', 'clinic']
+- **Files**: `data/roads.gpkg` (LineStrings, EPSG:4326), `data/facilities.gpkg` (Points, EPSG:4326)
+- **Attribution**: © OpenStreetMap contributors. When using this data, you must give credit to OSM and distribute
+  any derived datasets under ODbL.
