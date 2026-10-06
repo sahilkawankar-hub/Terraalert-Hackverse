@@ -1,0 +1,6 @@
+# TerraAlert — Optional ML Requirements (Prithvi EO foundation model)
+# Install when running GPU/ML-based flood segmentation
+
+torch>=2.4.0
+terratorch>=0.99
+torchgeo>=0.7.0

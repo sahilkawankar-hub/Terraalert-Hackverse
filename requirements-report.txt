@@ -1,0 +1,5 @@
+# TerraAlert — Optional Report Generation Requirements
+# Install for automated PDF incident report synthesis
+
+weasyprint>=63.0
+jinja2>=3.1.0
