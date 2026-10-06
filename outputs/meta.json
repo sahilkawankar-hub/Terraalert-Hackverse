@@ -47,9 +47,9 @@
   "mock": false,
   "updated_at": "2026-10-06T09:41:08.783483+00:00",
   "flood_classical_summary": {
-    "flooded_pixels": 3698,
-    "flooded_pct": 1.12,
-    "flooded_km2": 1.48
+    "flooded_pixels": 140316,
+    "flooded_pct": 6.25,
+    "flooded_km2": 56.13
   },
   "metrics": {
     "naive": {
