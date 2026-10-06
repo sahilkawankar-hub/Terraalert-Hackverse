@@ -220,7 +220,7 @@ def _main() -> None:
         f.write("\n")
 
     n = len(scored.get("features", []))
-    print(f"Rescored {n} zones → {zones_path}")
+    print(f"Rescored {n} zones -> {zones_path}")
 
 
 if __name__ == "__main__":

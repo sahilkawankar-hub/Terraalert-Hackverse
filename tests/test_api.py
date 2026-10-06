@@ -85,12 +85,17 @@ def test_zones_endpoint():
 
 
 def test_zones_filtering_tier():
-    """GET /api/zones with tier filter should only return matching tiers."""
-    res = client.get("/api/zones?tier=P1")
+    """GET /api/zones with tier filter should only return matching tiers.
+
+    Note: With ML unavailable, all real zones have Low confidence, so P1/P2
+    zones are demoted to VERIFY by the scoring rules.  This test therefore
+    queries VERIFY (guaranteed to exist) instead of P1.
+    """
+    res = client.get("/api/zones?tier=VERIFY")
     assert res.status_code == 200
     features = res.json()["features"]
     assert len(features) > 0
-    assert all(f["properties"]["tier"] == "P1" for f in features)
+    assert all(f["properties"]["tier"] == "VERIFY" for f in features)
 
 
 def test_zones_filtering_min_confidence():
