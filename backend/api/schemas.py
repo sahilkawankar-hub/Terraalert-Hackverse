@@ -72,6 +72,10 @@ class OverlaysResponse(BaseModel):
     corners: Optional[list[list[float]]] = Field(None, description="Four corner coordinates for MapLibre: [top-left, top-right, bottom-right, bottom-left]")
     note: str = "images not generated yet"
     layers: dict[str, str] = Field(default_factory=dict)
+    pre: Optional[str] = None
+    post: Optional[str] = None
+    flood: Optional[str] = None
+    confidence: Optional[str] = None
 
 
 class ErrorDetail(BaseModel):

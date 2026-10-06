@@ -281,6 +281,10 @@ def get_overlays() -> OverlaysResponse:
         corners=corners,
         note=note,
         layers=available_layers,
+        pre=available_layers.get("pre"),
+        post=available_layers.get("post"),
+        flood=available_layers.get("flood"),
+        confidence=available_layers.get("confidence"),
     )
 
 

@@ -43,6 +43,7 @@
     .event-status{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);white-space:nowrap;}
     .event-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber);animation:pulse-amb 2s ease-in-out infinite;flex-shrink:0;}
     @keyframes pulse-amb{0%,100%{opacity:1}50%{opacity:.4}}
+    @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
     .top-chip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:3px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;cursor:default;white-space:nowrap;}
     .top-chip.ready{border-color:rgba(34,197,94,.35);color:var(--green);}
     .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
@@ -117,8 +118,8 @@
     #label-post{right:12px;background:rgba(10,15,30,.85);border:1px solid rgba(167,139,250,.4);color:var(--purple);}
 
     /* Flood overlay on post side */
-    #img-flood{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:8;opacity:0;transition:opacity .3s;pointer-events:none;}
-    #img-flood.visible{opacity:.55;}
+    #img-flood{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:8;opacity:0;transition:opacity .3s;pointer-events:none;clip-path:inset(0 50% 0 0);-webkit-clip-path:inset(0 50% 0 0);}
+    #img-flood.visible{opacity:.75;}
 
     /* Slider footer bar */
     #slider-footer{height:38px;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;align-items:center;gap:0;flex-shrink:0;}
@@ -309,12 +310,11 @@
             <!-- Labels -->
             <div class="img-label" id="label-pre">&#128247; PRE-EVENT</div>
             <div class="img-label" id="label-post">&#128248; POST-EVENT</div>
-            <!-- Loading spinner -->
-            <div id="img-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;text-align:center;">
-              <div style="font-size:28px;animation:spin 1s linear infinite;display:inline-block;">&#9696;</div>
-              <div style="font-size:11px;color:var(--text-muted);margin-top:6px;font-family:var(--mono);">Loading satellite imagery...</div>
+            <!-- Loading indicator -->
+            <div id="img-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;text-align:center;pointer-events:none;">
+              <div style="font-size:28px;animation:spin 1s linear infinite;display:inline-block;color:var(--accent);">&#9696;</div>
+              <div id="img-loading-text" style="font-size:11px;color:var(--text-dim);margin-top:6px;font-family:var(--mono);">Loading satellite imagery...</div>
             </div>
-            @keyframes spin { to { transform: rotate(360deg); } }
           </div>
 
           <!-- Slider footer -->
@@ -524,6 +524,10 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+/* ── Determine API Base ──────────────────────── */
+var isApiPort = (window.location.port === '8000');
+var API_BASE = isApiPort ? '' : (window.location.protocol + '//' + (window.location.hostname || '127.0.0.1') + ':8000');
+
 /* ── Image Slider ────────────────────────────── */
 var sliderWrap = document.getElementById('slider-wrap');
 var imgPost    = document.getElementById('img-post');
@@ -536,7 +540,14 @@ function setSlider(pct) {
   pct = Math.max(2, Math.min(98, pct));
   sliderPct = pct;
   divider.style.left = pct + '%';
-  imgPost.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+  var clipVal = 'inset(0 ' + (100 - pct) + '% 0 0)';
+  imgPost.style.clipPath = clipVal;
+  imgPost.style.webkitClipPath = clipVal;
+  var imgFlood = document.getElementById('img-flood');
+  if (imgFlood) {
+    imgFlood.style.clipPath = clipVal;
+    imgFlood.style.webkitClipPath = clipVal;
+  }
 }
 
 sliderWrap.addEventListener('mousedown', function(e) { isDragging = true; e.preventDefault(); });
@@ -590,7 +601,7 @@ function initMap() {
 }
 
 function loadZonesOnMap() {
-  fetch('/api/zones').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+  fetch(API_BASE + '/api/zones').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
   .then(function(data) {
     if (!data || !data.features) return;
     data.features.forEach(function(f) {
@@ -605,61 +616,96 @@ function loadZonesOnMap() {
   });
 }
 
+/* ── Robust Image Loader with Fallback ───────── */
+function loadOverlayImage(imgEl, primaryUrl, fallbackUrl, onDone) {
+  var triedFallback = false;
+  imgEl.onload = function() {
+    if (onDone) onDone(true);
+  };
+  imgEl.onerror = function() {
+    if (!triedFallback && fallbackUrl && imgEl.src !== fallbackUrl) {
+      triedFallback = true;
+      console.warn('[Overlay] Primary URL failed: ' + imgEl.src + ', attempting fallback: ' + fallbackUrl);
+      imgEl.src = fallbackUrl;
+    } else {
+      console.error('[Overlay] Failed to load image: ' + primaryUrl);
+      if (onDone) onDone(false);
+    }
+  };
+  imgEl.src = primaryUrl;
+}
+
 /* ── Load Images & Data ──────────────────────── */
 (function init() {
-  var BASE = 'http://127.0.0.1:8000';
+  var pre = document.getElementById('img-pre');
+  var post = document.getElementById('img-post');
+  var flood = document.getElementById('img-flood');
+  var loadingEl = document.getElementById('img-loading');
 
-  // Load overlay bounds then images
-  fetch(BASE + '/api/overlays').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
-  .then(function(ov) {
-    var preUrl   = ov && ov.pre   ? BASE + ov.pre   : '../outputs/demo/overlays/pre.png';
-    var postUrl  = ov && ov.post  ? BASE + ov.post  : '../outputs/demo/overlays/post.png';
-    var floodUrl = ov && ov.flood ? BASE + ov.flood : '../outputs/demo/overlays/flood.png';
-
-    var pre = document.getElementById('img-pre');
-    var post = document.getElementById('img-post');
-    var flood = document.getElementById('img-flood');
-
-    var loaded = 0;
-    function onLoad() {
-      loaded++;
-      if (loaded >= 2) document.getElementById('img-loading').style.display = 'none';
+  var preDone = false, postDone = false;
+  function checkDone() {
+    if (preDone && postDone && loadingEl) {
+      loadingEl.style.display = 'none';
     }
-    pre.onload = post.onload = onLoad;
-    pre.onerror = function(){ pre.style.background='linear-gradient(135deg,#060a12,#0d1525)'; onLoad(); };
-    post.onerror = function(){ post.style.background='linear-gradient(135deg,#0a0f1e,#1a2540)'; onLoad(); };
+  }
 
-    pre.src   = preUrl;
-    post.src  = postUrl;
-    flood.src = floodUrl;
+  // Load overlay images
+  fetch(API_BASE + '/api/overlays').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+  .then(function(ov) {
+    var layers = (ov && ov.layers) ? ov.layers : (ov || {});
+
+    var prePath   = layers.pre   || (ov && ov.pre)   || '/api/overlays/pre.png';
+    var postPath  = layers.post  || (ov && ov.post)  || '/api/overlays/post.png';
+    var floodPath = layers.flood || (ov && ov.flood) || '/api/overlays/flood.png';
+
+    var prePrimary   = prePath.startsWith('http')   ? prePath   : (API_BASE + prePath);
+    var postPrimary  = postPath.startsWith('http')  ? postPath  : (API_BASE + postPath);
+    var floodPrimary = floodPath.startsWith('http') ? floodPath : (API_BASE + floodPath);
+
+    loadOverlayImage(pre, prePrimary, 'overlays/pre.png', function(ok) {
+      preDone = true;
+      if (!ok) pre.style.background = 'linear-gradient(135deg,#060a12,#0d1525)';
+      checkDone();
+    });
+
+    loadOverlayImage(post, postPrimary, 'overlays/post.png', function(ok) {
+      postDone = true;
+      if (!ok) post.style.background = 'linear-gradient(135deg,#0a0f1e,#1a2540)';
+      checkDone();
+    });
+
+    loadOverlayImage(flood, floodPrimary, 'overlays/flood.png', null);
   });
 
   // Load meta for dates/thresholds
-  fetch(BASE + '/api/meta').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+  fetch(API_BASE + '/api/meta').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
   .then(function(meta) {
     if (!meta) return;
     var preDate  = (meta.aoi && meta.aoi.pre_date)  || (meta.pipeline && meta.pipeline.pre_date)  || 'Pre-event';
     var postDate = (meta.aoi && meta.aoi.post_date) || (meta.pipeline && meta.pipeline.post_date) || 'Post-event';
-    document.getElementById('hdr-pre-date').textContent  = preDate;
-    document.getElementById('hdr-post-date').textContent = postDate;
-    document.getElementById('foot-pre').textContent  = preDate;
-    document.getElementById('foot-post').textContent = postDate;
+    var preEl = document.getElementById('hdr-pre-date'); if (preEl) preEl.textContent = preDate;
+    var postEl = document.getElementById('hdr-post-date'); if (postEl) postEl.textContent = postDate;
+    var fPreEl = document.getElementById('foot-pre'); if (fPreEl) fPreEl.textContent = preDate;
+    var fPostEl = document.getElementById('foot-post'); if (fPostEl) fPostEl.textContent = postDate;
 
     var thresholds = meta.thresholds || {};
-    document.getElementById('det-post-thresh').textContent = (thresholds.POST_DB_MAX || '-18.0') + ' dB';
-    document.getElementById('det-diff-thresh').textContent = (thresholds.DIFF_DB_MAX || '-3.0')  + ' dB';
-    document.getElementById('det-rule').textContent = (meta.fusion && meta.fusion.rule) || 'classical_plus_ml';
+    var dPost = document.getElementById('det-post-thresh'); if (dPost) dPost.textContent = (thresholds.POST_DB_MAX || '-18.0') + ' dB';
+    var dDiff = document.getElementById('det-diff-thresh'); if (dDiff) dDiff.textContent = (thresholds.DIFF_DB_MAX || '-3.0')  + ' dB';
+    var dRule = document.getElementById('det-rule'); if (dRule) dRule.textContent = (meta.fusion && meta.fusion.rule) || 'classical_plus_ml';
     var mlStatus = (meta.ml && meta.ml.status) || 'unavailable';
-    document.getElementById('det-ml').textContent = mlStatus === 'unavailable' ? 'Unavailable (no GPU)' : mlStatus;
-    document.getElementById('det-ml').className = 'det-val ' + (mlStatus === 'unavailable' ? 'amber' : 'green');
+    var dMl = document.getElementById('det-ml');
+    if (dMl) {
+      dMl.textContent = mlStatus === 'unavailable' ? 'Unavailable (no GPU)' : mlStatus;
+      dMl.className = 'det-val ' + (mlStatus === 'unavailable' ? 'amber' : 'green');
+    }
   });
 
   // Load zones for stats
-  fetch(BASE + '/api/zones').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+  fetch(API_BASE + '/api/zones').then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
   .then(function(data) {
     if (!data || !data.features || !data.features.length) {
-      document.getElementById('run-status').textContent = 'NO DATA';
-      document.getElementById('run-status-pill').textContent = 'NO DATA';
+      var rs = document.getElementById('run-status'); if (rs) rs.textContent = 'NO DATA';
+      var rsp = document.getElementById('run-status-pill'); if (rsp) rsp.textContent = 'NO DATA';
       return;
     }
     var features = data.features;
@@ -671,62 +717,81 @@ function loadZonesOnMap() {
     });
 
     // Stats
-    document.getElementById('stat-area').innerHTML = totalKm2.toFixed(1) + '<span class="stat-cell-unit"> km²</span>';
-    document.getElementById('stat-area').className = 'stat-cell-value has-val';
-    document.getElementById('sub-area').textContent = 'New inundation vs. pre-event baseline';
+    var sArea = document.getElementById('stat-area');
+    if (sArea) {
+      sArea.innerHTML = totalKm2.toFixed(1) + '<span class="stat-cell-unit"> km²</span>';
+      sArea.className = 'stat-cell-value has-val';
+    }
+    var subArea = document.getElementById('sub-area'); if (subArea) subArea.textContent = 'New inundation vs. pre-event baseline';
 
-    document.getElementById('stat-zones').textContent = features.length;
-    document.getElementById('stat-zones').className = 'stat-cell-value has-val';
+    var sZones = document.getElementById('stat-zones');
+    if (sZones) {
+      sZones.textContent = features.length;
+      sZones.className = 'stat-cell-value has-val';
+    }
 
-    document.getElementById('stat-pop').textContent = Math.round(totalPop).toLocaleString();
-    document.getElementById('stat-pop').className = 'stat-cell-value has-val';
-    document.getElementById('sub-pop').textContent = 'Estimated in flooded zones';
+    var sPop = document.getElementById('stat-pop');
+    if (sPop) {
+      sPop.textContent = Math.round(totalPop).toLocaleString();
+      sPop.className = 'stat-cell-value has-val';
+    }
+    var subPop = document.getElementById('sub-pop'); if (subPop) subPop.textContent = 'Estimated in flooded zones';
 
-    // Confidence — from first zone (all zones have same confidence label in this run)
+    // Confidence — from first zone
     var sampleConf = (features[0].properties || {}).confidence || 'Low';
     var confClass = sampleConf.toLowerCase();
     var confBadge = document.getElementById('stat-conf-badge');
-    confBadge.textContent = sampleConf;
-    confBadge.className = 'conf-badge ' + confClass;
-    document.getElementById('sub-conf').textContent = 'Single-method SAR detection';
-    document.getElementById('conf-badge-hdr').textContent = sampleConf;
+    if (confBadge) {
+      confBadge.textContent = sampleConf;
+      confBadge.className = 'conf-badge ' + confClass;
+    }
+    var subConf = document.getElementById('sub-conf'); if (subConf) subConf.textContent = 'Single-method SAR detection';
+    var confHdr = document.getElementById('conf-badge-hdr'); if (confHdr) confHdr.textContent = sampleConf;
 
-    // Confidence breakdown bars (derived from meta/known values)
+    // Confidence breakdown bars
     var sarPct   = sampleConf === 'High' ? 85 : sampleConf === 'Medium' ? 65 : 50;
-    var slopePct = 80; // flat Brahmaputra floodplain
-    var mlPct    = 0;  // ML unavailable
-    var timePct  = 70; // reasonable temporal consistency
+    var slopePct = 80;
+    var mlPct    = 0;
+    var timePct  = 70;
 
     function setBar(id, fid, pct, text) {
-      document.getElementById(id).textContent = text;
-      document.getElementById(fid).style.width = pct + '%';
+      var el = document.getElementById(id), fel = document.getElementById(fid);
+      if (el) el.textContent = text;
+      if (fel) fel.style.width = pct + '%';
     }
     setBar('cf-sar',   'cfb-sar',   sarPct,   sarPct + '%');
     setBar('cf-slope', 'cfb-slope', slopePct, slopePct + '% (flat terrain)');
     setBar('cf-ml',    'cfb-ml',    mlPct,    'N/A — unavailable');
     setBar('cf-time',  'cfb-time',  timePct,  timePct + '%');
 
-    document.getElementById('conf-reason').textContent =
-      'Confidence is LOW because only a single detection method (classical SAR differencing) produced results. ' +
-      'The Prithvi-EO-2.0 ML model could not run (missing terratorch/GPU). ' +
-      'Agreement between two independent methods would upgrade confidence to Medium/High.';
+    var confReason = document.getElementById('conf-reason');
+    if (confReason) {
+      confReason.textContent =
+        'Confidence is LOW because only a single detection method (classical SAR differencing) produced results. ' +
+        'The Prithvi-EO-2.0 ML model could not run (missing terratorch/GPU). ' +
+        'Agreement between two independent methods would upgrade confidence to Medium/High.';
+    }
 
     // Legend
-    document.getElementById('lg-flood').textContent = totalKm2.toFixed(1) + ' km²';
-    document.getElementById('lg-dry').textContent   = 'Non-flooded';
+    var lgFlood = document.getElementById('lg-flood'); if (lgFlood) lgFlood.textContent = totalKm2.toFixed(1) + ' km²';
+    var lgDry = document.getElementById('lg-dry'); if (lgDry) lgDry.textContent = 'Non-flooded';
 
     // Status pill
     var pill = document.getElementById('run-status-pill');
-    pill.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;margin-right:4px;animation:pulse-green 1.5s infinite;"></span>ANALYSIS COMPLETE';
-    pill.className = 'standby-pill active-run';
+    if (pill) {
+      pill.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;margin-right:4px;animation:pulse-green 1.5s infinite;"></span>ANALYSIS COMPLETE';
+      pill.className = 'standby-pill active-run';
+    }
 
     var topStatus = document.getElementById('run-status');
-    topStatus.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;margin-right:5px;"></span>ANALYSIS COMPLETE';
+    if (topStatus) {
+      topStatus.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;margin-right:5px;"></span>ANALYSIS COMPLETE';
+    }
   });
 })();
 
 /* ── Exports ─────────────────────────────────── */
-function exportGeoJSON(){ window.open('http://127.0.0.1:8000/api/zones', '_blank'); }
+function exportGeoJSON(){ window.open(API_BASE + '/api/zones', '_blank'); }
 </script>
 </body>
 </html>
