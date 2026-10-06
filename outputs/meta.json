@@ -21,7 +21,7 @@
   "grid_crs": "EPSG:32646",
   "pixel_size_m": 20,
   "s2_cloud_fractions": null,
-  "ml_available_fraction": 0,
+  "ml_available_fraction": null,
   "model_name": "ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11",
   "model_fallback": "ibm-nasa-geospatial/Prithvi-EO-1.0-100M-sen1floods11",
   "thresholds": {
@@ -40,12 +40,12 @@
   },
   "fallbacks": {
     "s2": "not run / skipped",
-    "ml": "unavailable: terratorch is not installed or missing subdependencies (No module named 'terratorch'). Install requirements-ml.txt:\n  pip install -r requirements-ml.txt",
+    "ml": "not run",
     "calibration": "no overlapping reference"
   },
   "demo": false,
   "mock": false,
-  "updated_at": "2026-10-06T09:41:08.783483+00:00",
+  "updated_at": "2026-10-06T10:37:07.823316+00:00",
   "flood_classical_summary": {
     "flooded_pixels": 140316,
     "flooded_pct": 6.25,
@@ -118,27 +118,27 @@
   "fusion": {
     "rule": "classical_plus_ml",
     "rule_description": "classical_plus_ml: SAR classical flood plus high-confidence ML detections; classical only where ML is unavailable.",
-    "classical_flood_pixels": 3698,
-    "classical_flood_km2": 1.479,
+    "classical_flood_pixels": 140316,
+    "classical_flood_km2": 56.126,
     "ml_flood_pixels": 0,
     "ml_flood_km2": 0.0,
-    "fused_flood_pixels": 3698,
-    "fused_flood_km2": 1.479,
+    "fused_flood_pixels": 140316,
+    "fused_flood_km2": 56.126,
     "agreement_counts": {
-      "neither_0": 2239777,
-      "single_method_1": 3698,
+      "neither_0": 2103159,
+      "single_method_1": 140316,
       "both_methods_2": 0,
       "nodata_255": 0
     },
     "method_availability": {
-      "both_available_pixels": 2243475,
-      "ml_unavailable_pixels": 0
+      "both_available_pixels": 0,
+      "ml_unavailable_pixels": 2243475
     }
   },
   "zones": {
     "zone_source": "grid",
     "zone_cell_m": 1000,
-    "total_zones": 41,
+    "total_zones": 585,
     "flood_raster": "flood_fused.tif"
   },
   "overlays": {
@@ -152,7 +152,7 @@
   },
   "report": {
     "html": true,
-    "pdf": false,
-    "generated_at": "2026-10-06 09:48 UTC"
+    "pdf": true,
+    "generated_at": "2026-10-06 11:58 UTC"
   }
 }

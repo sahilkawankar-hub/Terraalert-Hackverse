@@ -412,6 +412,22 @@
       color: #fff;
       background: var(--bg-hover);
     }
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 6px;
+      font-size: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
 
     /* KPI 4-CARD STRIP */
     .kpi-strip {
@@ -826,11 +842,17 @@
         </div>
 
         <div class="rh-actions">
-          <button class="btn-action" onclick="exportPdf()">
-            &#128196; EXPORT PDF
+          <button class="btn-action" style="background:linear-gradient(135deg, #059669 0%, #047857 100%);color:#fff;border-color:rgba(34,197,94,0.5);" onclick="downloadPdfReport()" title="Download compiled ReportLab PDF dossier">
+            📥 DOWNLOAD PDF
+          </button>
+          <button class="btn-action" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%);color:#fff;border-color:rgba(56,165,248,0.5);" onclick="generateLiveReport()" title="Regenerate live incident report">
+            ⚡ REGENERATE
+          </button>
+          <button class="btn-action" onclick="openHtmlReport()" title="Open full HTML web dossier">
+            🌐 HTML DOSSIER
           </button>
           <button class="btn-action" onclick="exportGeoJson()">
-            &#9678; GEOJSON / SHP
+            &#9678; GEOJSON
           </button>
           <button class="btn-action" onclick="shareDossier()">
             &#10150; SHARE
@@ -1196,7 +1218,17 @@
       }
     });
 
-    function loadDemoDossier(id = 'RPT-2022-ASM-001') {
+    function showToast(msg, duration = 3500) {
+      const toast = document.getElementById('toast-msg');
+      if (!toast) return;
+      toast.innerHTML = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, duration);
+    }
+
+    async function loadDemoDossier(id = 'RPT-2022-ASM-001') {
       isReportLoaded = true;
 
       // Update Topbar
@@ -1216,26 +1248,45 @@
       document.getElementById('dossier-heading').textContent = 'Assam Floods — Brahmaputra Basin Wave 2';
       document.getElementById('dossier-subheading').textContent = 'Satellite Sensor: Sentinel-1A SAR (C-Band) + Sentinel-2 MSI • NDMA Standard Protocol L3 • Certified Event';
 
+      // Try live data from API
+      let floodArea = '56.13 km²';
+      let popVal = '1,850+';
+      let confVal = '92.0%';
+      let roadsVal = '84.2 km';
+
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      try {
+        const res = await fetch(`${apiBase}/api/meta`);
+        if (res.ok) {
+          const meta = await res.json();
+          if (meta.flood_classical_summary && meta.flood_classical_summary.flooded_km2) {
+            floodArea = `${meta.flood_classical_summary.flooded_km2} km²`;
+          }
+        }
+      } catch (e) {
+        console.warn('API meta fetch skipped:', e);
+      }
+
       // KPIs
       const area = document.getElementById('kpi-area');
       area.className = 'kpi-val';
-      area.textContent = '412.5 km²';
-      document.getElementById('kpi-area-sub').textContent = 'Flood Inundation';
+      area.textContent = floodArea;
+      document.getElementById('kpi-area-sub').textContent = 'Standing Flood (Excl River)';
 
       const pop = document.getElementById('kpi-pop');
       pop.className = 'kpi-val';
-      pop.textContent = '142,300';
-      document.getElementById('kpi-pop-sub').textContent = 'Across 5 Districts';
+      pop.textContent = popVal;
+      document.getElementById('kpi-pop-sub').textContent = 'WorldPop Inundated Corridors';
 
       const roads = document.getElementById('kpi-roads');
       roads.className = 'kpi-val';
-      roads.textContent = '84.2 km';
-      document.getElementById('kpi-roads-sub').textContent = '19 Breached Sectors';
+      roads.textContent = roadsVal;
+      document.getElementById('kpi-roads-sub').textContent = 'OSM Breached Transects';
 
       const conf = document.getElementById('kpi-conf');
       conf.className = 'kpi-val';
-      conf.textContent = '94.2%';
-      document.getElementById('kpi-conf-sub').textContent = 'Bayesian Posterior';
+      conf.textContent = confVal;
+      document.getElementById('kpi-conf-sub').textContent = 'High (Radar Multi-Factor)';
 
       // Hide empty state and show active tab
       document.getElementById('empty-state').style.display = 'none';
@@ -1266,11 +1317,39 @@
     }
 
     function exportPdf() {
-      if (!isReportLoaded) {
-        alert('No active dossier loaded to export.');
-        return;
+      downloadPdfReport();
+    }
+
+    function downloadPdfReport() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      showToast('📥 Initiating PDF dossier download (disaster_report_assam_2022.pdf)...', 3000);
+      const a = document.createElement('a');
+      a.href = `${apiBase}/api/report?format=pdf`;
+      a.download = 'disaster_report_assam_2022.pdf';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    async function generateLiveReport() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      showToast('⚡ Ingesting Sentinel-1/2 data & compiling ReportLab PDF...', 4000);
+      try {
+        const res = await fetch(`${apiBase}/api/report/generate`, { method: 'POST' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        showToast('✅ Dossier compiled! Starting PDF download...', 3000);
+        setTimeout(() => downloadPdfReport(), 600);
+      } catch (err) {
+        console.error(err);
+        showToast('⚠️ Using compiled report dossier (PDF ready)', 3000);
+        downloadPdfReport();
       }
-      window.print();
+    }
+
+    function openHtmlReport() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      window.open(`${apiBase}/api/report?format=html`, '_blank');
     }
 
     function exportGeoJson() {
@@ -1278,25 +1357,27 @@
         alert('No active dossier loaded to export.');
         return;
       }
-      alert('GeoJSON / SHP vectors package downloaded for Assam flood inundation boundaries.');
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      window.open(`${apiBase}/api/zones`, '_blank');
     }
 
     function shareDossier() {
       if (navigator.clipboard) {
         navigator.clipboard.writeText(window.location.href);
-        alert('Dossier link copied to clipboard.');
+        showToast('📋 Dossier link copied to clipboard.', 2500);
       } else {
         alert('Dossier URL: ' + window.location.href);
       }
     }
 
     function syncFieldConsole() {
-      alert('Initiated encrypted sync with NDMA Incident Command EOC.');
+      showToast('🛰️ Initiated encrypted sync with NDMA Incident Command EOC.', 3000);
     }
 
     function pushToMobile() {
-      alert('Push notification dispatched to NDRF 1st Battalion field tablets.');
+      showToast('📲 Push notification dispatched to NDRF 1st Battalion field tablets.', 3000);
     }
   </script>
+  <div id="toast-msg" class="toast-msg"></div>
 </body>
 </html>

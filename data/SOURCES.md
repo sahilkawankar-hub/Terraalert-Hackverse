@@ -1,6 +1,6 @@
 # Data Sources — TerraAlert Ingest
 
-Ingestion timestamp: 2026-10-06 09:41:08 UTC
+Ingestion timestamp: 2026-10-06 10:37:07 UTC
 Event: Assam Floods, June 2022 (Barpeta-Nalbari, Brahmaputra north bank)
 AOI: (90.95, 26.1, 91.25, 26.37) (EPSG:4326)
 Grid: EPSG:32646 at 20m resolution

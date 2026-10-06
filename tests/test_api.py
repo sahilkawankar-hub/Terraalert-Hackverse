@@ -182,6 +182,23 @@ def test_report_endpoint():
     assert "TerraAlert Incident Report" in res.text
 
 
+def test_report_pdf_endpoint():
+    """GET /api/report?format=pdf should return the compiled PDF."""
+    res = client.get("/api/report?format=pdf")
+    assert res.status_code == 200
+    assert "application/pdf" in res.headers.get("content-type", "")
+    assert len(res.content) > 1000
+
+
+def test_report_generate_endpoint():
+    """POST /api/report/generate should generate or refresh the incident report."""
+    res = client.post("/api/report/generate")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert "/api/report?format=pdf" in data["pdf_url"]
+
+
 def test_rescore_changes_ranking():
     """POST /api/rescore with contrasting weights must alter the ranking."""
     # Scenario A: 100% Facilities weight

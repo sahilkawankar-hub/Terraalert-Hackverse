@@ -29,7 +29,8 @@
     "diff_db_max": -3.0,
     "slope_max_deg": 5.0,
     "min_object_pixels": 25,
-    "min_flood_pct": 1.0
+    "min_flood_pct": 1.0,
+    "used_otsu": false
   },
   "weights": {
     "severity": 0.3,
@@ -39,23 +40,119 @@
   },
   "fallbacks": {
     "s2": "not run / skipped",
-    "ml": "not run"
+    "ml": "not run",
+    "calibration": "no overlapping reference"
   },
   "demo": false,
   "mock": false,
-  "updated_at": "2026-10-06T04:52:10.879444+00:00",
+  "updated_at": "2026-10-06T10:37:07.823316+00:00",
+  "flood_classical_summary": {
+    "flooded_pixels": 140316,
+    "flooded_pct": 6.25,
+    "flooded_km2": 56.13
+  },
+  "metrics": {
+    "naive": {
+      "iou": 0.6969,
+      "precision": 0.9056,
+      "recall": 0.7515,
+      "f1": 0.8214,
+      "tp": 73755,
+      "fp": 7685,
+      "fn": 24388,
+      "tn": 67143,
+      "valid_pixels": 172971
+    },
+    "classical": {
+      "iou": 0.5403,
+      "precision": 0.9099,
+      "recall": 0.5709,
+      "f1": 0.7016,
+      "tp": 56031,
+      "fp": 5551,
+      "fn": 42112,
+      "tn": 69277,
+      "valid_pixels": 172971
+    },
+    "reference": "Sen1Floods11 (data/raw/LabelHand/)",
+    "overlap_aoi": false,
+    "experiment": "Sen1Floods11 Ground-Truth Benchmark (Separate Experiment)",
+    "reference_dataset": "Sen1Floods11 Hand-Labeled (India_1017769_LabelHand.tif)",
+    "reference_location": "Nagaon / Brahmaputra Valley, Assam (26.60°N, 93.02°E)",
+    "chip_id": "India_1017769",
+    "aoi_overlap": false,
+    "aoi_disclaimer": "Sen1Floods11 chips do not geographically overlap the Barpeta-Nalbari AOI. Zero accuracy is claimed on the project AOI per AGENT_CONTEXT rule 5.",
+    "pre_event_source": "COPERNICUS/S1_GRD (May 2019, Relative Orbit 143, ASCENDING)",
+    "post_event_source": "Sen1Floods11 S1Hand (July 2019, Relative Orbit 143, ASCENDING)",
+    "fused": {
+      "status": "not evaluated on AOI (no overlapping reference dataset)",
+      "aoi_disclaimer": "Per AGENT_CONTEXT rule 5, zero accuracy claimed on AOI."
+    }
+  },
+  "s2": {
+    "collection": "COPERNICUS/S2_SR_HARMONIZED",
+    "cloud_mask": "SCL classes 3,7,8,9,10,11 masked",
+    "composite_strategy": "least_cloudy_single_image",
+    "bands": [
+      "B2",
+      "B3",
+      "B4",
+      "B8A",
+      "B11",
+      "B12"
+    ],
+    "pre_window": [
+      "2022-04-20",
+      "2022-05-10"
+    ],
+    "post_window": [
+      "2022-06-17",
+      "2022-06-30"
+    ],
+    "pre_cloud_pct": 3.34,
+    "post_cloud_pct": 70.01,
+    "pre_usable_fraction": 0.9666,
+    "post_usable_fraction": 0.2999,
+    "note": "Assam June is monsoon season; reported fractions are actual, not inflated."
+  },
+  "fusion": {
+    "rule": "classical_plus_ml",
+    "rule_description": "classical_plus_ml: SAR classical flood plus high-confidence ML detections; classical only where ML is unavailable.",
+    "classical_flood_pixels": 140316,
+    "classical_flood_km2": 56.126,
+    "ml_flood_pixels": 0,
+    "ml_flood_km2": 0.0,
+    "fused_flood_pixels": 140316,
+    "fused_flood_km2": 56.126,
+    "agreement_counts": {
+      "neither_0": 2103159,
+      "single_method_1": 140316,
+      "both_methods_2": 0,
+      "nodata_255": 0
+    },
+    "method_availability": {
+      "both_available_pixels": 0,
+      "ml_unavailable_pixels": 2243475
+    }
+  },
+  "zones": {
+    "zone_source": "grid",
+    "zone_cell_m": 1000,
+    "total_zones": 585,
+    "flood_raster": "flood_fused.tif"
+  },
+  "overlays": {
+    "rendered": [
+      "pre",
+      "post",
+      "flood",
+      "confidence"
+    ],
+    "skipped": {}
+  },
   "report": {
     "html": true,
     "pdf": false,
-    "generated_at": "2026-10-05 21:44 UTC"
-  },
-  "overlays": {
-    "rendered": [],
-    "skipped": {
-      "pre": "pre.tif not found",
-      "post": "post.tif not found",
-      "flood": "flood_classical.tif not found",
-      "confidence": "confidence_pixel.tif not found"
-    }
+    "generated_at": "2026-10-06 10:38 UTC"
   }
 }

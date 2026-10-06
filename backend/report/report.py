@@ -190,21 +190,36 @@ def generate_report(force: bool = False, skip_pdf: bool = False) -> Path:
         f.write(html_content)
     logger.info("Wrote %s", html_path)
 
-    # Try PDF via WeasyPrint
+    # Try PDF via ReportLab (primary) or WeasyPrint (secondary)
     pdf_generated = False
     if not skip_pdf:
         try:
-            from weasyprint import HTML
-            HTML(string=html_content, base_url=str(config.OUTPUTS_DIR)).write_pdf(pdf_path)
-            logger.info("Wrote %s", pdf_path)
+            from backend.report.pdf_gen import generate_pdf_report
+            generate_pdf_report(data, pdf_path)
+            logger.info("Wrote %s via ReportLab", pdf_path)
             pdf_generated = True
-        except (ImportError, OSError) as exc:
-            logger.warning(
-                "WeasyPrint or system graphics libraries (Pango/Cairo) not available (%s) — PDF skipped; HTML report retained.",
-                exc,
-            )
         except Exception as exc:
-            logger.warning("WeasyPrint PDF generation failed: %s — keeping HTML only", exc)
+            logger.warning("ReportLab PDF generation failed: %s — trying WeasyPrint", exc)
+            try:
+                from weasyprint import HTML
+                HTML(string=html_content, base_url=str(config.OUTPUTS_DIR)).write_pdf(pdf_path)
+                logger.info("Wrote %s via WeasyPrint", pdf_path)
+                pdf_generated = True
+            except Exception as wex:
+                logger.warning("PDF generation skipped (%s)", wex)
+
+    # Sync generated reports to frontend and demo directories for direct static access
+    import shutil
+    frontend_dir = config.ROOT_DIR / "frontend"
+    demo_dir = config.OUTPUTS_DIR / "demo"
+    if frontend_dir.exists():
+        shutil.copy2(html_path, frontend_dir / "report.html")
+        if pdf_generated and pdf_path.exists():
+            shutil.copy2(pdf_path, frontend_dir / "report.pdf")
+    if demo_dir.exists():
+        shutil.copy2(html_path, demo_dir / "report.html")
+        if pdf_generated and pdf_path.exists():
+            shutil.copy2(pdf_path, demo_dir / "report.pdf")
 
     update_meta(
         config.OUTPUTS_DIR / "meta.json",

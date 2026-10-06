@@ -328,17 +328,37 @@ def get_report(format: Optional[str] = Query(None, description="Preferred format
             detail="PDF report not found. Run python -m backend.report.report first.",
         )
 
-    if fmt == "html" or not target_pdf:
-        if target_html:
-            return FileResponse(target_html, media_type="text/html", filename="report.html")
-        if target_pdf:
-            return FileResponse(target_pdf, media_type="application/pdf", filename="report.pdf")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Incident report has not been generated yet. Run python -m backend.report.report first.",
-        )
+    # Default to HTML
+    if target_html:
+        return FileResponse(target_html, media_type="text/html", filename="report.html")
+    if target_pdf:
+        return FileResponse(target_pdf, media_type="application/pdf", filename="report.pdf")
 
-    return FileResponse(target_pdf, media_type="application/pdf", filename="report.pdf")
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Incident report has not been generated yet. Run python -m backend.report.report first.",
+    )
+
+
+@app.post("/api/report/generate", tags=["Reporting"])
+def generate_incident_report() -> dict[str, Any]:
+    """Generate or re-generate both HTML and PDF incident reports on demand."""
+    from backend.report.report import generate_report
+    try:
+        generate_report(force=True, skip_pdf=False)
+        has_pdf = (config.OUTPUTS_DIR / "report.pdf").exists()
+        return {
+            "status": "success",
+            "message": "Incident report generated successfully",
+            "pdf_url": "/api/report?format=pdf",
+            "html_url": "/api/report?format=html",
+            "has_pdf": has_pdf,
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate incident report: {exc}",
+        )
 
 
 # ── No-cache middleware for HTML (prevent stale browser cache) ─────────────────

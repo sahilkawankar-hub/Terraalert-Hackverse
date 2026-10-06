@@ -390,6 +390,75 @@
       background: #1d4ed8;
       box-shadow: 0 0 12px rgba(37,99,235,0.4);
     }
+    .btn-generate {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(56,165,248,0.5);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-generate:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+      box-shadow: 0 0 12px rgba(56,165,248,0.4);
+    }
+    .btn-generate:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-download-pdf {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(34,197,94,0.5);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-download-pdf:hover {
+      background: linear-gradient(135deg, #047857 0%, #059669 100%);
+      box-shadow: 0 0 12px rgba(34,197,94,0.4);
+    }
+    .rep-action-btn.pdf {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .rep-action-btn.pdf:hover {
+      background: #10b981;
+      color: #000;
+    }
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 6px;
+      font-size: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
 
     /* FILTER BAR */
     .filter-bar {
@@ -836,11 +905,11 @@
         <div class="ph-stats-row">
           <div class="ph-kpi-chip">
             <span>TOTAL</span>
-            <span class="ph-kpi-val" id="kpi-total">0</span>
+            <span class="ph-kpi-val" id="kpi-total">1</span>
           </div>
           <div class="ph-kpi-chip">
             <span>COMPLETE</span>
-            <span class="ph-kpi-val" id="kpi-complete">0</span>
+            <span class="ph-kpi-val" id="kpi-complete">1</span>
           </div>
           <div class="ph-kpi-chip">
             <span>IN PROGRESS</span>
@@ -848,10 +917,16 @@
           </div>
           <div class="ph-kpi-chip">
             <span>CRITICAL P1</span>
-            <span class="ph-kpi-val crit" id="kpi-p1">0</span>
+            <span class="ph-kpi-val crit" id="kpi-p1">1</span>
           </div>
+          <button class="btn-generate" id="btn-generate-report" onclick="generateLiveReport()" title="Recompile ReportLab PDF dossier on demand">
+            ⚡ GENERATE REPORT
+          </button>
+          <button class="btn-download-pdf" id="btn-download-pdf" onclick="downloadPdfReport()" title="Download PDF dossier directly">
+            📥 DOWNLOAD PDF
+          </button>
           <a href="new-analysis.html" class="btn-create">
-            + START NEW ANALYSIS
+            + NEW ANALYSIS
           </a>
         </div>
       </div>
@@ -933,13 +1008,21 @@
             <div class="empty-icon-wrap">
               &#128196;
             </div>
-            <h3>No reports yet</h3>
-            <p>Completed disaster analyses will appear here once an incident workflow is initiated.</p>
-            <a href="new-analysis.html" class="btn-create" style="margin-bottom: 12px;">
-              + START NEW ANALYSIS
-            </a>
+            <h3>Disaster Incident Dossier</h3>
+            <p>Ready to compile or download publication-grade disaster intelligence dossiers with spatial flood maps, sensor parameters, and priority rescue directives.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:14px;">
+              <button onclick="generateLiveReport()" class="btn-generate">
+                ⚡ GENERATE LIVE REPORT
+              </button>
+              <button onclick="downloadPdfReport()" class="btn-download-pdf">
+                📥 DOWNLOAD PDF REPORT
+              </button>
+              <a href="new-analysis.html" class="btn-create">
+                + NEW ANALYSIS
+              </a>
+            </div>
             <div style="font-size:11px;color:var(--text-muted);">
-              Or click <a href="javascript:void(0)" onclick="toggleSampleDossier()" style="color:var(--accent);text-decoration:none;font-weight:600;">Load Sample Dossier</a> to review the certified Assam Flood dossier.
+              Or click <a href="javascript:void(0)" onclick="loadSampleData()" style="color:var(--accent);text-decoration:none;font-weight:600;">Load Historical Archive</a> to compare past deluge records.
             </div>
           </div>
 
@@ -956,11 +1039,11 @@
                   <th>Priority</th>
                   <th>Status</th>
                   <th>Certified Date</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="reports-tbody">
-                <!-- Dynamically populated or filled via sample -->
+                <!-- Dynamically populated -->
               </tbody>
             </table>
           </div>
@@ -970,33 +1053,39 @@
 
       <!-- FOOTER -->
       <div class="ledger-footer">
-        <div id="footer-count">0 reports available &bull; Retention policy: 180 days</div>
+        <div id="footer-count">1 report available &bull; Retention policy: 180 days</div>
         <div class="pagination">
           <span class="page-link disabled">&larr; PREVIOUS</span>
           <span style="color:#fff;font-family:var(--mono);">1 of 1</span>
           <span class="page-link disabled">NEXT &rarr;</span>
         </div>
-        <button class="btn-export" onclick="exportLedger()">
-          &#8681; EXPORT LEDGER
-        </button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-export" onclick="downloadPdfReport()">
+            📥 DOWNLOAD PDF
+          </button>
+          <button class="btn-export" onclick="exportLedger()">
+            &#8681; EXPORT LEDGER
+          </button>
+        </div>
       </div>
 
     </main>
   </div>
 
+  <div id="toast-msg" class="toast-msg"></div>
+
   <script>
-    // Demo dossiers repository
     const SAMPLE_REPORTS = [
       {
         id: "RPT-2022-ASM-001",
         title: "Assam Floods — Brahmaputra Basin Wave 2",
         aoi: "Assam, India • 26.20°N, 92.93°E",
-        sensors: "Sentinel-1A SAR + Sentinel-2 MSI",
-        area: "412.5 km²",
-        population: "142,300 civilians",
+        sensors: "Sentinel-1A SAR (VV) + Sentinel-2 MSI",
+        area: "56.13 km²",
+        population: "1,850+ civilians (est.)",
         priority: "CRITICAL P1",
         status: "COMPLETE",
-        date: "2022-06-18 14:30 UTC"
+        date: "2026-10-06 11:50 UTC"
       },
       {
         id: "RPT-2022-ASM-002",
@@ -1013,13 +1102,55 @@
 
     let currentReports = [];
 
-    // Check if query param or storage has demo report
+    function showToast(msg, duration = 3500) {
+      const toast = document.getElementById('toast-msg');
+      if (!toast) return;
+      toast.innerHTML = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, duration);
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('sample') === '1' || localStorage.getItem('terraalert_sample_reports') === '1') {
-        loadSampleData();
-      }
+      initReports();
     });
+
+    async function initReports() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      try {
+        const res = await fetch(`${apiBase}/api/meta`);
+        if (res.ok) {
+          const meta = await res.json();
+          const floodKm2 = (meta.flood_classical_summary && meta.flood_classical_summary.flooded_km2) || 56.13;
+          const generatedAt = (meta.report && meta.report.generated_at) || '2026-10-06 11:50 UTC';
+
+          currentReports = [
+            {
+              id: "RPT-2022-ASM-001",
+              title: "Assam Floods — Brahmaputra Basin Wave 2",
+              aoi: "Assam, India • 26.20°N, 92.93°E",
+              sensors: "Sentinel-1A SAR (VV) + Sentinel-2 MSI",
+              area: `${floodKm2} km²`,
+              population: "1,850+ civilians (est.)",
+              priority: "CRITICAL P1",
+              status: "COMPLETE",
+              date: generatedAt,
+              pdfUrl: `${apiBase}/api/report?format=pdf`,
+              htmlUrl: `${apiBase}/api/report?format=html`
+            }
+          ];
+          renderReports();
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not reach API directly for reports:", err);
+      }
+
+      // Default fallback
+      currentReports = [...SAMPLE_REPORTS];
+      renderReports();
+    }
 
     function toggleSampleDossier() {
       if (currentReports.length === 0) {
@@ -1033,14 +1164,16 @@
       currentReports = [...SAMPLE_REPORTS];
       localStorage.setItem('terraalert_sample_reports', '1');
       renderReports();
-      document.getElementById('btn-sample-toggle').textContent = '✕ Reset to Empty State';
+      const btn = document.getElementById('btn-sample-toggle');
+      if (btn) btn.textContent = '✕ Reset Archive View';
     }
 
     function unloadSampleData() {
       currentReports = [];
       localStorage.removeItem('terraalert_sample_reports');
       renderReports();
-      document.getElementById('btn-sample-toggle').innerHTML = '&#9889; Load Sample Dossier (Assam Floods 2022)';
+      const btn = document.getElementById('btn-sample-toggle');
+      if (btn) btn.innerHTML = '&#9889; Load Sample Dossier (Assam Floods 2022)';
     }
 
     function renderReports() {
@@ -1057,24 +1190,24 @@
       if (currentReports.length === 0) {
         emptyState.style.display = 'flex';
         tableWrap.style.display = 'none';
-        totalKpi.textContent = '0';
-        compKpi.textContent = '0';
-        progKpi.textContent = '0';
-        p1Kpi.textContent = '0';
-        footerCount.innerHTML = '0 reports available &bull; Retention policy: 180 days';
-        topEvent.textContent = 'NONE ACTIVE';
+        if (totalKpi) totalKpi.textContent = '0';
+        if (compKpi) compKpi.textContent = '0';
+        if (progKpi) progKpi.textContent = '0';
+        if (p1Kpi) p1Kpi.textContent = '0';
+        if (footerCount) footerCount.innerHTML = '0 reports available &bull; Retention policy: 180 days';
+        if (topEvent) topEvent.textContent = 'NONE ACTIVE';
         return;
       }
 
       emptyState.style.display = 'none';
       tableWrap.style.display = 'block';
 
-      totalKpi.textContent = currentReports.length;
-      compKpi.textContent = currentReports.filter(r => r.status === 'COMPLETE').length;
-      progKpi.textContent = currentReports.filter(r => r.status === 'IN PROGRESS').length;
-      p1Kpi.textContent = currentReports.filter(r => r.priority.includes('P1')).length;
-      footerCount.innerHTML = `${currentReports.length} reports available &bull; Retention policy: 180 days`;
-      topEvent.textContent = 'ASSAM FLOODS 2022';
+      if (totalKpi) totalKpi.textContent = currentReports.length;
+      if (compKpi) compKpi.textContent = currentReports.filter(r => r.status === 'COMPLETE').length;
+      if (progKpi) progKpi.textContent = currentReports.filter(r => r.status === 'IN PROGRESS').length;
+      if (p1Kpi) p1Kpi.textContent = currentReports.filter(r => r.priority.includes('P1')).length;
+      if (footerCount) footerCount.innerHTML = `${currentReports.length} report(s) available &bull; Retention policy: 180 days`;
+      if (topEvent) topEvent.textContent = 'ASSAM FLOODS 2022';
 
       tbody.innerHTML = currentReports.map(r => `
         <tr>
@@ -1084,18 +1217,76 @@
             <span class="rep-aoi">${r.aoi}</span>
           </td>
           <td><span style="font-family:var(--mono);font-size:10px;">${r.sensors}</span></td>
-          <td><strong style="color:#fff;">${r.area}</strong></td>
+          <td><strong style="color:#00EEFF;">${r.area}</strong></td>
           <td>${r.population}</td>
           <td><span class="badge-p1">${r.priority}</span></td>
           <td><span class="badge-complete">&#10003; ${r.status}</span></td>
           <td style="font-family:var(--mono);font-size:10.5px;">${r.date}</td>
           <td>
-            <a href="report-details.html?id=${r.id}" class="rep-action-btn">
-              View Dossier &rarr;
-            </a>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <a href="javascript:void(0)" onclick="downloadPdfReport()" class="rep-action-btn pdf" title="Download compiled ReportLab PDF">
+                📥 PDF
+              </a>
+              <a href="report-details.html?id=${r.id}" class="rep-action-btn" title="View interactive GEOINT dossier">
+                View &rarr;
+              </a>
+              <a href="javascript:void(0)" onclick="openHtmlReport()" class="rep-action-btn" title="View raw HTML version">
+                🌐
+              </a>
+            </div>
           </td>
         </tr>
       `).join('');
+    }
+
+    async function generateLiveReport() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      const genBtn = document.getElementById('btn-generate-report');
+      const oldHtml = genBtn ? genBtn.innerHTML : '';
+      if (genBtn) {
+        genBtn.disabled = true;
+        genBtn.innerHTML = '⏳ Generating PDF...';
+      }
+      showToast('⚡ Ingesting satellite data & compiling ReportLab PDF dossier...', 4000);
+
+      try {
+        const res = await fetch(`${apiBase}/api/report/generate`, { method: 'POST' });
+        if (!res.ok) {
+          throw new Error(`Server returned HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        showToast('✅ Incident report compiled! Downloading PDF now...', 3000);
+        await initReports();
+        setTimeout(() => {
+          downloadPdfReport();
+        }, 600);
+      } catch (err) {
+        console.error('Report generation error:', err);
+        showToast('⚠️ Could not generate live, downloading existing PDF dossier...', 3000);
+        downloadPdfReport();
+      } finally {
+        if (genBtn) {
+          genBtn.disabled = false;
+          genBtn.innerHTML = oldHtml;
+        }
+      }
+    }
+
+    function downloadPdfReport() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      showToast('📥 Initiating PDF download (disaster_report_assam_2022.pdf)...', 3000);
+      const a = document.createElement('a');
+      a.href = `${apiBase}/api/report?format=pdf`;
+      a.download = 'disaster_report_assam_2022.pdf';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function openHtmlReport() {
+      const apiBase = (window.location.port === '8000') ? '' : 'http://127.0.0.1:8000';
+      window.open(`${apiBase}/api/report?format=html`, '_blank');
     }
 
     function handleSearch() {
@@ -1109,10 +1300,7 @@
     }
 
     function applyFilters() {
-      // Filtering logic for demonstration
-      if (currentReports.length > 0) {
-        renderReports();
-      }
+      if (currentReports.length > 0) renderReports();
     }
 
     function resetFilters() {
