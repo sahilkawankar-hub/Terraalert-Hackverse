@@ -45,7 +45,7 @@
   },
   "demo": false,
   "mock": false,
-  "updated_at": "2026-10-06T08:08:54.724481+00:00",
+  "updated_at": "2026-10-06T09:41:08.783483+00:00",
   "flood_classical_summary": {
     "flooded_pixels": 3698,
     "flooded_pct": 1.12,
@@ -134,5 +134,25 @@
       "both_available_pixels": 2243475,
       "ml_unavailable_pixels": 0
     }
+  },
+  "zones": {
+    "zone_source": "grid",
+    "zone_cell_m": 1000,
+    "total_zones": 41,
+    "flood_raster": "flood_fused.tif"
+  },
+  "overlays": {
+    "rendered": [
+      "pre",
+      "post",
+      "flood",
+      "confidence"
+    ],
+    "skipped": {}
+  },
+  "report": {
+    "html": true,
+    "pdf": false,
+    "generated_at": "2026-10-06 09:48 UTC"
   }
 }
