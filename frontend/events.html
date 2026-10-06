@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Disaster Events Console — DisasterIntel GEOINT Command</title>
+  <meta name="description" content="Active disaster events, satellite tracking passes, and rapid response telemetry."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-deep: #060a12;
+      --bg-base: #0a0f1e;
+      --bg-surface: #0d1525;
+      --bg-card: #111827;
+      --bg-card-alt: #0f1720;
+      --bg-hover: #1a2540;
+      --border: rgba(56, 165, 248, 0.12);
+      --border-bright: rgba(56, 165, 248, 0.28);
+      --accent: #38a5f8;
+      --accent-dim: rgba(56, 165, 248, 0.08);
+      --green: #22c55e;
+      --green-dim: rgba(34, 197, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.15);
+      --purple: #a78bfa;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --sidebar-w: 200px;
+      --topbar-h: 46px;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-deep);
+      color: var(--text);
+      font-size: 12.5px;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+
+    /* ── TOPBAR ─────────────────────────────────────── */
+    #topbar {
+      height: var(--topbar-h);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #1e40af 0%, #38a5f8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      box-shadow: 0 0 10px rgba(56,165,248,0.3);
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand-name { font-size: 12px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    .brand-sub { font-size: 8.5px; font-weight: 600; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+    .brand-version {
+      font-size: 9px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+      font-weight: 600;
+    }
+
+    .topbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    .status-badge.alert {
+      color: var(--red);
+      border-color: rgba(239, 68, 68, 0.3);
+      background: var(--red-dim);
+    }
+    .status-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 6px var(--red);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
+    .user-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7 0%, #38a5f8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .user-info { display: flex; flex-direction: column; line-height: 1.15; }
+    .user-name { font-size: 11px; font-weight: 600; color: var(--text); }
+    .user-role { font-size: 8.5px; color: var(--text-muted); font-family: var(--mono); }
+
+    /* ── LAYOUT ──────────────────────────────────────── */
+    #layout { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── SIDEBAR ─────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 10px 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-item:hover {
+      color: var(--text);
+      background: var(--bg-hover);
+    }
+    .nav-item.active {
+      color: var(--accent);
+      background: rgba(56, 165, 248, 0.08);
+      border-left-color: var(--accent);
+    }
+    .nav-icon { width: 16px; font-size: 13px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: #fff;
+      font-size: 8.5px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+
+    /* ── MAIN ────────────────────────────────────────── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-base);
+    }
+
+    .page-header {
+      padding: 18px 24px 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+    }
+    .ph-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .ph-title-row h1 {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+    .ph-tag {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      background: var(--red-dim);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--mono);
+    }
+    .ph-sub { font-size: 11.5px; color: var(--text-muted); }
+    .ph-stats-row { display: flex; align-items: center; gap: 10px; }
+    .ph-kpi-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+    }
+    .ph-kpi-val { font-size: 12px; font-weight: 700; color: #fff; }
+    .ph-kpi-val.crit { color: var(--red); }
+    .btn-create {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 4px;
+      background: #2563eb;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(56,165,248,0.5);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-create:hover {
+      background: #1d4ed8;
+      box-shadow: 0 0 12px rgba(37,99,235,0.4);
+    }
+
+    /* FILTERS */
+    .filter-bar {
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .search-input {
+      flex: 1;
+      max-width: 380px;
+      height: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 12px;
+      color: var(--text);
+      font-size: 11.5px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .filter-select {
+      height: 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0 10px;
+      color: var(--text-dim);
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* EVENTS GRID */
+    .events-container {
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 16px;
+    }
+    .event-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.15s;
+    }
+    .event-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-1px);
+    }
+    .event-card.crit::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--red);
+    }
+    .event-card.high::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--amber);
+    }
+    .event-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .event-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .event-loc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .badge-tier {
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-size: 9.5px;
+      font-weight: 700;
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+    .tier-p1 { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .tier-p2 { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+    .tier-p3 { background: rgba(56,165,248,0.1); color: var(--accent); border: 1px solid var(--border-bright); }
+
+    .event-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: var(--bg-card-alt);
+      border: 1px solid rgba(56,165,248,0.08);
+      border-radius: 5px;
+      padding: 10px;
+    }
+    .em-item { display: flex; flex-direction: column; gap: 2px; }
+    .em-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .em-val { font-size: 12px; font-weight: 700; color: #fff; font-family: var(--mono); }
+
+    .event-desc {
+      font-size: 11.5px;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+
+    .event-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 8px;
+      border-top: 1px solid rgba(56,165,248,0.08);
+    }
+    .btn-act {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-dim);
+      transition: all 0.15s;
+    }
+    .btn-act:hover {
+      border-color: var(--border-bright);
+      color: #fff;
+    }
+    .btn-act.primary {
+      background: rgba(56, 165, 248, 0.12);
+      border-color: var(--border-bright);
+      color: var(--accent);
+    }
+    .btn-act.primary:hover {
+      background: var(--accent);
+      color: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <a href="index.html" class="topbar-brand">
+      <div class="brand-icon">&#128752;</div>
+      <div class="brand-text">
+        <span class="brand-name">DisasterIntel</span>
+        <span class="brand-sub">GEOINT COMMAND</span>
+      </div>
+      <span class="brand-version">V3.4</span>
+    </a>
+
+    <div class="topbar-center">
+      <div class="status-badge alert">
+        <span class="dot"></span>
+        <span>6 ACTIVE DISASTER EVENTS TRACKED</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="user-pill">
+        <div class="user-avatar">EV</div>
+        <div class="user-info">
+          <span class="user-name">Dr. Elena Vance</span>
+          <span class="user-role">OPS-DIR &bull; CMD-L1</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div id="layout">
+
+    <!-- SIDEBAR -->
+    <nav id="sidebar">
+      <a href="index.html" class="nav-item">
+        <span class="nav-icon">&#9638;</span> Dashboard
+      </a>
+      <a href="new-analysis.html" class="nav-item">
+        <span class="nav-icon">&#10022;</span> New Analysis
+      </a>
+      <a href="ai-change-detection.html" class="nav-item">
+        <span class="nav-icon">&#9650;</span> AI Change Detection
+      </a>
+      <a href="confidence-zoning.html" class="nav-item">
+        <span class="nav-icon">&#128737;</span> Spatial Confidence
+      </a>
+      <a href="emergency-priority-map.html" class="nav-item">
+        <span class="nav-icon">&#128506;</span> Emergency Priority Map
+      </a>
+      <a href="impact-analysis.html" class="nav-item">
+        <span class="nav-icon">&#9741;</span> Impact Analysis
+      </a>
+      <a href="events.html" class="nav-item active">
+        <span class="nav-icon">&#9889;</span> Events
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="reports.html" class="nav-item">
+        <span class="nav-icon">&#128196;</span> Reports
+      </a>
+      <a href="settings.html" class="nav-item">
+        <span class="nav-icon">&#9881;</span> Settings
+      </a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main id="main">
+      <div class="page-header">
+        <div>
+          <div class="ph-title-row">
+            <h1>Disaster Events Console</h1>
+            <span class="ph-tag">LIVE OPS</span>
+          </div>
+          <div class="ph-sub">Real-time disaster events, satellite tracking passes, and triage telemetry.</div>
+        </div>
+
+        <div class="ph-stats-row">
+          <div class="ph-kpi-chip">
+            <span>TRACKED</span>
+            <span class="ph-kpi-val">6</span>
+          </div>
+          <div class="ph-kpi-chip">
+            <span>CRITICAL P1</span>
+            <span class="ph-kpi-val crit">2</span>
+          </div>
+          <div class="ph-kpi-chip">
+            <span>MONITORING</span>
+            <span class="ph-kpi-val">2</span>
+          </div>
+          <div class="ph-kpi-chip">
+            <span>RECOVERY</span>
+            <span class="ph-kpi-val">2</span>
+          </div>
+          <a href="new-analysis.html" class="btn-create">+ CREATE ANALYSIS</a>
+        </div>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <input type="text" class="search-input" id="event-search" placeholder="Filter events by location, hazard, or district..." oninput="filterEvents()"/>
+        <select class="filter-select" id="filter-sev" onchange="filterEvents()">
+          <option value="all">Severity: All</option>
+          <option value="p1">Critical P1</option>
+          <option value="p2">High P2</option>
+          <option value="p3">Medium P3</option>
+        </select>
+        <select class="filter-select" id="filter-hazard" onchange="filterEvents()">
+          <option value="all">Hazard: All</option>
+          <option value="flood">Flood Inundation</option>
+          <option value="cyclone">Cyclone</option>
+        </select>
+      </div>
+
+      <!-- EVENTS CARDS GRID -->
+      <div class="events-container" id="events-grid">
+
+        <!-- Card 1 -->
+        <div class="event-card crit" data-sev="p1" data-hazard="flood">
+          <div class="event-top">
+            <div>
+              <div class="event-title">Assam Floods — Brahmaputra Basin Wave 2</div>
+              <div class="event-loc">Barpeta &amp; Nalbari, Assam, India &bull; 26.20°N, 92.93°E</div>
+            </div>
+            <span class="badge-tier tier-p1">CRITICAL P1</span>
+          </div>
+          <div class="event-metrics">
+            <div class="em-item">
+              <span class="em-lbl">Flooded Area</span>
+              <span class="em-val">412.5 km²</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Civilians At Risk</span>
+              <span class="em-val">142,300</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Road Breaches</span>
+              <span class="em-val">84.2 km</span>
+            </div>
+          </div>
+          <div class="event-desc">
+            Extreme monsoon surge breached river embankments across 5 districts. Active SAR passes (Sentinel-1A) confirming submerged transit axes and islanded hamlets.
+          </div>
+          <div class="event-actions">
+            <a href="emergency-priority-map.html" class="btn-act primary">&#128506; Priority Map</a>
+            <a href="new-analysis.html" class="btn-act">&#10022; New Pass</a>
+            <a href="report-details.html?id=RPT-2022-ASM-001" class="btn-act">&#128196; Open Dossier</a>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="event-card crit" data-sev="p1" data-hazard="flood">
+          <div class="event-top">
+            <div>
+              <div class="event-title">Barpeta District Flash Inundation</div>
+              <div class="event-loc">Barpeta Town &amp; Beki River Basin &bull; 26.32°N, 91.00°E</div>
+            </div>
+            <span class="badge-tier tier-p1">CRITICAL P1</span>
+          </div>
+          <div class="event-metrics">
+            <div class="em-item">
+              <span class="em-lbl">Flooded Area</span>
+              <span class="em-val">128.4 km²</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Civilians At Risk</span>
+              <span class="em-val">48,600</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Road Breaches</span>
+              <span class="em-val">38.0 km</span>
+            </div>
+          </div>
+          <div class="event-desc">
+            NH-31 highway corridor impassable due to rapid river swelling. Water inundation exceeds 1.8m in low-lying residential clusters.
+          </div>
+          <div class="event-actions">
+            <a href="emergency-priority-map.html" class="btn-act primary">&#128506; Priority Map</a>
+            <a href="report-details.html?id=RPT-2022-ASM-002" class="btn-act">&#128196; Open Dossier</a>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="event-card high" data-sev="p2" data-hazard="flood">
+          <div class="event-top">
+            <div>
+              <div class="event-title">Sylhet-Surma Basin Transboundary Deluge</div>
+              <div class="event-loc">Surma-Kushiyara Basin &bull; 24.89°N, 91.87°E</div>
+            </div>
+            <span class="badge-tier tier-p2">HIGH P2</span>
+          </div>
+          <div class="event-metrics">
+            <div class="em-item">
+              <span class="em-lbl">Flooded Area</span>
+              <span class="em-val">289.0 km²</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Civilians At Risk</span>
+              <span class="em-val">96,400</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Road Breaches</span>
+              <span class="em-val">52.1 km</span>
+            </div>
+          </div>
+          <div class="event-desc">
+            Transboundary surface run-off resulting in high-water level alerts. Power distribution substations cut off in rural sectors.
+          </div>
+          <div class="event-actions">
+            <a href="new-analysis.html" class="btn-act primary">&#10022; Run Analysis</a>
+            <a href="emergency-priority-map.html" class="btn-act">&#128506; Priority Map</a>
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="event-card high" data-sev="p2" data-hazard="flood">
+          <div class="event-top">
+            <div>
+              <div class="event-title">Manas River Embankment Breach</div>
+              <div class="event-loc">Manas National Sanctuary Zone &bull; 26.65°N, 90.99°E</div>
+            </div>
+            <span class="badge-tier tier-p2">HIGH P2</span>
+          </div>
+          <div class="event-metrics">
+            <div class="em-item">
+              <span class="em-lbl">Flooded Area</span>
+              <span class="em-val">64.2 km²</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Civilians At Risk</span>
+              <span class="em-val">19,200</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Road Breaches</span>
+              <span class="em-val">16.4 km</span>
+            </div>
+          </div>
+          <div class="event-desc">
+            Riverbank breach inundating 12 fringe tribal hamlets. Awaiting tactical boat air-drop directive from district disaster command.
+          </div>
+          <div class="event-actions">
+            <a href="emergency-priority-map.html" class="btn-act primary">&#128506; Priority Map</a>
+            <a href="new-analysis.html" class="btn-act">&#10022; New Pass</a>
+          </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="event-card" data-sev="p3" data-hazard="flood">
+          <div class="event-top">
+            <div>
+              <div class="event-title">Kamrup Rural Lowland Inundation</div>
+              <div class="event-loc">Hajo &amp; Rangia Belt &bull; 26.24°N, 91.52°E</div>
+            </div>
+            <span class="badge-tier tier-p3">MEDIUM P3</span>
+          </div>
+          <div class="event-metrics">
+            <div class="em-item">
+              <span class="em-lbl">Flooded Area</span>
+              <span class="em-val">45.1 km²</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Civilians At Risk</span>
+              <span class="em-val">14,800</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Road Breaches</span>
+              <span class="em-val">8.3 km</span>
+            </div>
+          </div>
+          <div class="event-desc">
+            Agricultural land inundation and shallow standing water. Water level stabilizing; local emergency relief camp operational.
+          </div>
+          <div class="event-actions">
+            <a href="emergency-priority-map.html" class="btn-act primary">&#128506; Priority Map</a>
+            <a href="new-analysis.html" class="btn-act">&#10022; Re-Scan</a>
+          </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="event-card" data-sev="p3" data-hazard="flood">
+          <div class="event-top">
+            <div>
+              <div class="event-title">Cachar &amp; Hailakandi Waterlogging</div>
+              <div class="event-loc">Silchar Urban Outskirts &bull; 24.82°N, 92.79°E</div>
+            </div>
+            <span class="badge-tier tier-p3">MEDIUM P3</span>
+          </div>
+          <div class="event-metrics">
+            <div class="em-item">
+              <span class="em-lbl">Flooded Area</span>
+              <span class="em-val">38.7 km²</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Civilians At Risk</span>
+              <span class="em-val">11,200</span>
+            </div>
+            <div class="em-item">
+              <span class="em-lbl">Road Breaches</span>
+              <span class="em-val">5.8 km</span>
+            </div>
+          </div>
+          <div class="event-desc">
+            Water receding in eastern catchment. De-silting and health inspection underway by civil defense teams.
+          </div>
+          <div class="event-actions">
+            <a href="emergency-priority-map.html" class="btn-act primary">&#128506; Priority Map</a>
+            <a href="reports.html" class="btn-act">&#128196; View Reports</a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function filterEvents() {
+      const q = document.getElementById('event-search').value.toLowerCase();
+      const sev = document.getElementById('filter-sev').value;
+      const haz = document.getElementById('filter-hazard').value;
+
+      const cards = document.querySelectorAll('.event-card');
+      cards.forEach(c => {
+        const text = c.innerText.toLowerCase();
+        const cSev = c.getAttribute('data-sev');
+        const cHaz = c.getAttribute('data-hazard');
+
+        const matchesQuery = !q || text.includes(q);
+        const matchesSev = (sev === 'all') || (cSev === sev);
+        const matchesHaz = (haz === 'all') || (cHaz === haz);
+
+        c.style.display = (matchesQuery && matchesSev && matchesHaz) ? 'flex' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
