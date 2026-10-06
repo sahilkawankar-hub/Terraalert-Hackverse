@@ -1,0 +1,1205 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ZONE-14",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.13,
+              26.235
+            ],
+            [
+              91.19,
+              26.235
+            ],
+            [
+              91.19,
+              26.3025
+            ],
+            [
+              91.13,
+              26.3025
+            ],
+            [
+              91.13,
+              26.235
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-14",
+        "name": "Barpeta Sector 4-3",
+        "flood_pct": 71.0,
+        "flood_km2": 31.86,
+        "population": 14243,
+        "people_affected": 10983,
+        "facilities_hit": 1,
+        "road_cut_km": 5.26,
+        "confidence": "Low",
+        "confidence_score": 0.38,
+        "reason": "Flagged for on-ground verification: High impact (P1) with Low detection confidence",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 1,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.3,
+          "people": 0.3,
+          "facilities": 0.1,
+          "roads": 0.1846
+        },
+        "score": 0.8846,
+        "rank": 1,
+        "tier": "VERIFY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-04",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.13,
+              26.1
+            ],
+            [
+              91.19,
+              26.1
+            ],
+            [
+              91.19,
+              26.1675
+            ],
+            [
+              91.13,
+              26.1675
+            ],
+            [
+              91.13,
+              26.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-04",
+        "name": "Barpeta Sector 4-1",
+        "flood_pct": 44.5,
+        "flood_km2": 19.97,
+        "population": 11685,
+        "people_affected": 4909,
+        "facilities_hit": 2,
+        "road_cut_km": 5.12,
+        "confidence": "High",
+        "confidence_score": 0.8,
+        "reason": "44.5% flood extent (19.97 km\u00b2), 4909 affected, 2 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 1,
+          "clinic": 0,
+          "school": 1,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.188,
+          "people": 0.1341,
+          "facilities": 0.2,
+          "roads": 0.1796
+        },
+        "score": 0.7018,
+        "rank": 2,
+        "tier": "P1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-11",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.95,
+              26.235
+            ],
+            [
+              91.01,
+              26.235
+            ],
+            [
+              91.01,
+              26.3025
+            ],
+            [
+              90.95,
+              26.3025
+            ],
+            [
+              90.95,
+              26.235
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-11",
+        "name": "Barpeta Sector 1-3",
+        "flood_pct": 38.8,
+        "flood_km2": 17.41,
+        "population": 7815,
+        "people_affected": 2001,
+        "facilities_hit": 2,
+        "road_cut_km": 5.7,
+        "confidence": "Medium",
+        "confidence_score": 0.52,
+        "reason": "38.8% flood extent (17.41 km\u00b2), 2001 affected, 2 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 2
+        },
+        "breakdown": {
+          "severity": 0.1639,
+          "people": 0.0547,
+          "facilities": 0.2,
+          "roads": 0.2
+        },
+        "score": 0.6186,
+        "rank": 3,
+        "tier": "P1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-18",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.07,
+              26.3025
+            ],
+            [
+              91.13,
+              26.3025
+            ],
+            [
+              91.13,
+              26.37
+            ],
+            [
+              91.07,
+              26.37
+            ],
+            [
+              91.07,
+              26.3025
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-18",
+        "name": "Barpeta Sector 3-4",
+        "flood_pct": 44.4,
+        "flood_km2": 19.92,
+        "population": 6285,
+        "people_affected": 1988,
+        "facilities_hit": 1,
+        "road_cut_km": 5.34,
+        "confidence": "Medium",
+        "confidence_score": 0.67,
+        "reason": "44.4% flood extent (19.92 km\u00b2), 1988 affected, 1 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 1,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.1876,
+          "people": 0.0543,
+          "facilities": 0.1,
+          "roads": 0.1874
+        },
+        "score": 0.5293,
+        "rank": 4,
+        "tier": "P1"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-09",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.13,
+              26.1675
+            ],
+            [
+              91.19,
+              26.1675
+            ],
+            [
+              91.19,
+              26.235
+            ],
+            [
+              91.13,
+              26.235
+            ],
+            [
+              91.13,
+              26.1675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-09",
+        "name": "Barpeta Sector 4-2",
+        "flood_pct": 32.8,
+        "flood_km2": 14.72,
+        "population": 14316,
+        "people_affected": 4840,
+        "facilities_hit": 1,
+        "road_cut_km": 3.05,
+        "confidence": "High",
+        "confidence_score": 0.75,
+        "reason": "32.8% flood extent (14.72 km\u00b2), 4840 affected, 1 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 1,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.1386,
+          "people": 0.1322,
+          "facilities": 0.1,
+          "roads": 0.107
+        },
+        "score": 0.4778,
+        "rank": 5,
+        "tier": "P2"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-03",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.07,
+              26.1
+            ],
+            [
+              91.13,
+              26.1
+            ],
+            [
+              91.13,
+              26.1675
+            ],
+            [
+              91.07,
+              26.1675
+            ],
+            [
+              91.07,
+              26.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-03",
+        "name": "Barpeta Sector 3-1",
+        "flood_pct": 48.8,
+        "flood_km2": 21.9,
+        "population": 5533,
+        "people_affected": 2710,
+        "facilities_hit": 1,
+        "road_cut_km": 2.71,
+        "confidence": "Medium",
+        "confidence_score": 0.58,
+        "reason": "48.8% flood extent (21.9 km\u00b2), 2710 affected, 1 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 1
+        },
+        "breakdown": {
+          "severity": 0.2062,
+          "people": 0.074,
+          "facilities": 0.1,
+          "roads": 0.0951
+        },
+        "score": 0.4753,
+        "rank": 6,
+        "tier": "P2"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-08",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.07,
+              26.1675
+            ],
+            [
+              91.13,
+              26.1675
+            ],
+            [
+              91.13,
+              26.235
+            ],
+            [
+              91.07,
+              26.235
+            ],
+            [
+              91.07,
+              26.1675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-08",
+        "name": "Barpeta Sector 3-2",
+        "flood_pct": 44.2,
+        "flood_km2": 19.83,
+        "population": 4808,
+        "people_affected": 1283,
+        "facilities_hit": 1,
+        "road_cut_km": 3.39,
+        "confidence": "Low",
+        "confidence_score": 0.39,
+        "reason": "Flagged for on-ground verification: High impact (P2) with Low detection confidence",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 1,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.1868,
+          "people": 0.035,
+          "facilities": 0.1,
+          "roads": 0.1189
+        },
+        "score": 0.4408,
+        "rank": 7,
+        "tier": "VERIFY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-16",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.95,
+              26.3025
+            ],
+            [
+              91.01,
+              26.3025
+            ],
+            [
+              91.01,
+              26.37
+            ],
+            [
+              90.95,
+              26.37
+            ],
+            [
+              90.95,
+              26.3025
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-16",
+        "name": "Barpeta Sector 1-4",
+        "flood_pct": 15.8,
+        "flood_km2": 7.09,
+        "population": 9546,
+        "people_affected": 1206,
+        "facilities_hit": 2,
+        "road_cut_km": 3.59,
+        "confidence": "Medium",
+        "confidence_score": 0.59,
+        "reason": "15.8% flood extent (7.09 km\u00b2), 1206 affected, 2 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 1,
+          "clinic": 0,
+          "school": 1,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0668,
+          "people": 0.0329,
+          "facilities": 0.2,
+          "roads": 0.126
+        },
+        "score": 0.4257,
+        "rank": 8,
+        "tier": "P2"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-07",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.01,
+              26.1675
+            ],
+            [
+              91.07,
+              26.1675
+            ],
+            [
+              91.07,
+              26.235
+            ],
+            [
+              91.01,
+              26.235
+            ],
+            [
+              91.01,
+              26.1675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-07",
+        "name": "Barpeta Sector 2-2",
+        "flood_pct": 44.6,
+        "flood_km2": 20.01,
+        "population": 5146,
+        "people_affected": 2385,
+        "facilities_hit": 0,
+        "road_cut_km": 4.79,
+        "confidence": "Low",
+        "confidence_score": 0.38,
+        "reason": "Flagged for on-ground verification: High impact (P2) with Low detection confidence",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.1885,
+          "people": 0.0651,
+          "facilities": 0.0,
+          "roads": 0.1681
+        },
+        "score": 0.4217,
+        "rank": 9,
+        "tier": "VERIFY"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-12",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.01,
+              26.235
+            ],
+            [
+              91.07,
+              26.235
+            ],
+            [
+              91.07,
+              26.3025
+            ],
+            [
+              91.01,
+              26.3025
+            ],
+            [
+              91.01,
+              26.235
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-12",
+        "name": "Barpeta Sector 2-3",
+        "flood_pct": 56.7,
+        "flood_km2": 25.44,
+        "population": 6156,
+        "people_affected": 3162,
+        "facilities_hit": 0,
+        "road_cut_km": 0.88,
+        "confidence": "Medium",
+        "confidence_score": 0.56,
+        "reason": "56.7% flood extent (25.44 km\u00b2), 3162 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.2396,
+          "people": 0.0864,
+          "facilities": 0.0,
+          "roads": 0.0309
+        },
+        "score": 0.3568,
+        "rank": 10,
+        "tier": "P2"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-13",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.07,
+              26.235
+            ],
+            [
+              91.13,
+              26.235
+            ],
+            [
+              91.13,
+              26.3025
+            ],
+            [
+              91.07,
+              26.3025
+            ],
+            [
+              91.07,
+              26.235
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-13",
+        "name": "Barpeta Sector 3-3",
+        "flood_pct": 30.9,
+        "flood_km2": 13.86,
+        "population": 5525,
+        "people_affected": 1456,
+        "facilities_hit": 1,
+        "road_cut_km": 0.55,
+        "confidence": "Medium",
+        "confidence_score": 0.43,
+        "reason": "30.9% flood extent (13.86 km\u00b2), 1456 affected, 1 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 1,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.1306,
+          "people": 0.0398,
+          "facilities": 0.1,
+          "roads": 0.0193
+        },
+        "score": 0.2896,
+        "rank": 11,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-19",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.13,
+              26.3025
+            ],
+            [
+              91.19,
+              26.3025
+            ],
+            [
+              91.19,
+              26.37
+            ],
+            [
+              91.13,
+              26.37
+            ],
+            [
+              91.13,
+              26.3025
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-19",
+        "name": "Barpeta Sector 4-4",
+        "flood_pct": 25.2,
+        "flood_km2": 11.31,
+        "population": 6398,
+        "people_affected": 1733,
+        "facilities_hit": 0,
+        "road_cut_km": 3.28,
+        "confidence": "Low",
+        "confidence_score": 0.36,
+        "reason": "25.2% flood extent (11.31 km\u00b2), 1733 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.1065,
+          "people": 0.0473,
+          "facilities": 0.0,
+          "roads": 0.1151
+        },
+        "score": 0.2689,
+        "rank": 12,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-10",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.19,
+              26.1675
+            ],
+            [
+              91.25,
+              26.1675
+            ],
+            [
+              91.25,
+              26.235
+            ],
+            [
+              91.19,
+              26.235
+            ],
+            [
+              91.19,
+              26.1675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-10",
+        "name": "Barpeta Sector 5-2",
+        "flood_pct": 21.9,
+        "flood_km2": 9.83,
+        "population": 4311,
+        "people_affected": 707,
+        "facilities_hit": 0,
+        "road_cut_km": 1.59,
+        "confidence": "Low",
+        "confidence_score": 0.39,
+        "reason": "21.9% flood extent (9.83 km\u00b2), 707 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0925,
+          "people": 0.0193,
+          "facilities": 0.0,
+          "roads": 0.0558
+        },
+        "score": 0.1676,
+        "rank": 13,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-02",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.01,
+              26.1
+            ],
+            [
+              91.07,
+              26.1
+            ],
+            [
+              91.07,
+              26.1675
+            ],
+            [
+              91.01,
+              26.1675
+            ],
+            [
+              91.01,
+              26.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-02",
+        "name": "Barpeta Sector 2-1",
+        "flood_pct": 10.5,
+        "flood_km2": 4.71,
+        "population": 11063,
+        "people_affected": 712,
+        "facilities_hit": 0,
+        "road_cut_km": 1.84,
+        "confidence": "Medium",
+        "confidence_score": 0.58,
+        "reason": "10.5% flood extent (4.71 km\u00b2), 712 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0444,
+          "people": 0.0194,
+          "facilities": 0.0,
+          "roads": 0.0646
+        },
+        "score": 0.1284,
+        "rank": 14,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-06",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.95,
+              26.1675
+            ],
+            [
+              91.01,
+              26.1675
+            ],
+            [
+              91.01,
+              26.235
+            ],
+            [
+              90.95,
+              26.235
+            ],
+            [
+              90.95,
+              26.1675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-06",
+        "name": "Barpeta Sector 1-2",
+        "flood_pct": 13.2,
+        "flood_km2": 5.92,
+        "population": 3791,
+        "people_affected": 414,
+        "facilities_hit": 0,
+        "road_cut_km": 1.49,
+        "confidence": "High",
+        "confidence_score": 0.94,
+        "reason": "13.2% flood extent (5.92 km\u00b2), 414 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0558,
+          "people": 0.0113,
+          "facilities": 0.0,
+          "roads": 0.0523
+        },
+        "score": 0.1194,
+        "rank": 15,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-17",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.01,
+              26.3025
+            ],
+            [
+              91.07,
+              26.3025
+            ],
+            [
+              91.07,
+              26.37
+            ],
+            [
+              91.01,
+              26.37
+            ],
+            [
+              91.01,
+              26.3025
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-17",
+        "name": "Barpeta Sector 2-4",
+        "flood_pct": 13.3,
+        "flood_km2": 5.97,
+        "population": 3285,
+        "people_affected": 304,
+        "facilities_hit": 0,
+        "road_cut_km": 1.42,
+        "confidence": "Medium",
+        "confidence_score": 0.41,
+        "reason": "13.3% flood extent (5.97 km\u00b2), 304 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0562,
+          "people": 0.0083,
+          "facilities": 0.0,
+          "roads": 0.0498
+        },
+        "score": 0.1143,
+        "rank": 16,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-15",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.19,
+              26.235
+            ],
+            [
+              91.25,
+              26.235
+            ],
+            [
+              91.25,
+              26.3025
+            ],
+            [
+              91.19,
+              26.3025
+            ],
+            [
+              91.19,
+              26.235
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-15",
+        "name": "Barpeta Sector 5-3",
+        "flood_pct": 10.0,
+        "flood_km2": 4.49,
+        "population": 14578,
+        "people_affected": 1544,
+        "facilities_hit": 0,
+        "road_cut_km": 0.0,
+        "confidence": "High",
+        "confidence_score": 0.81,
+        "reason": "10.0% flood extent (4.49 km\u00b2), 1544 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0423,
+          "people": 0.0422,
+          "facilities": 0.0,
+          "roads": 0.0
+        },
+        "score": 0.0844,
+        "rank": 17,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-20",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.19,
+              26.3025
+            ],
+            [
+              91.25,
+              26.3025
+            ],
+            [
+              91.25,
+              26.37
+            ],
+            [
+              91.19,
+              26.37
+            ],
+            [
+              91.19,
+              26.3025
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-20",
+        "name": "Barpeta Sector 5-4",
+        "flood_pct": 1.7,
+        "flood_km2": 0.76,
+        "population": 9014,
+        "people_affected": 92,
+        "facilities_hit": 0,
+        "road_cut_km": 0.0,
+        "confidence": "Medium",
+        "confidence_score": 0.51,
+        "reason": "1.7% flood extent (0.76 km\u00b2), 92 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0072,
+          "people": 0.0025,
+          "facilities": 0.0,
+          "roads": 0.0
+        },
+        "score": 0.0097,
+        "rank": 18,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-05",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.19,
+              26.1
+            ],
+            [
+              91.25,
+              26.1
+            ],
+            [
+              91.25,
+              26.1675
+            ],
+            [
+              91.19,
+              26.1675
+            ],
+            [
+              91.19,
+              26.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-05",
+        "name": "Barpeta Sector 5-1",
+        "flood_pct": 0.5,
+        "flood_km2": 0.22,
+        "population": 3821,
+        "people_affected": 19,
+        "facilities_hit": 0,
+        "road_cut_km": 0.0,
+        "confidence": "Medium",
+        "confidence_score": 0.55,
+        "reason": "0.5% flood extent (0.22 km\u00b2), 19 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0021,
+          "people": 0.0005,
+          "facilities": 0.0,
+          "roads": 0.0
+        },
+        "score": 0.0026,
+        "rank": 19,
+        "tier": "P3"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ZONE-01",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.95,
+              26.1
+            ],
+            [
+              91.01,
+              26.1
+            ],
+            [
+              91.01,
+              26.1675
+            ],
+            [
+              90.95,
+              26.1675
+            ],
+            [
+              90.95,
+              26.1
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-01",
+        "name": "Barpeta Sector 1-1",
+        "flood_pct": 0.1,
+        "flood_km2": 0.04,
+        "population": 5706,
+        "people_affected": 4,
+        "facilities_hit": 0,
+        "road_cut_km": 0.0,
+        "confidence": "Medium",
+        "confidence_score": 0.41,
+        "reason": "0.1% flood extent (0.04 km\u00b2), 4 affected, 0 critical facilities inundated",
+        "facilities_by_type": {
+          "hospital": 0,
+          "clinic": 0,
+          "school": 0,
+          "shelter": 0,
+          "water_plant": 0
+        },
+        "breakdown": {
+          "severity": 0.0004,
+          "people": 0.0001,
+          "facilities": 0.0,
+          "roads": 0.0
+        },
+        "score": 0.0005,
+        "rank": 20,
+        "tier": "P3"
+      }
+    }
+  ]
+}

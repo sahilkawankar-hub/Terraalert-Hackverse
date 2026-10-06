@@ -1,0 +1,600 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.016,
+              26.10675
+            ],
+            [
+              91.02167,
+              26.10675
+            ],
+            [
+              91.02167,
+              26.11313
+            ],
+            [
+              91.016,
+              26.11313
+            ],
+            [
+              91.016,
+              26.10675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-02",
+        "area_km2": 4.71,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.076,
+              26.10675
+            ],
+            [
+              91.10235,
+              26.10675
+            ],
+            [
+              91.10235,
+              26.1364
+            ],
+            [
+              91.076,
+              26.1364
+            ],
+            [
+              91.076,
+              26.10675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-03",
+        "area_km2": 21.9,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.136,
+              26.10675
+            ],
+            [
+              91.16003,
+              26.10675
+            ],
+            [
+              91.16003,
+              26.13378
+            ],
+            [
+              91.136,
+              26.13378
+            ],
+            [
+              91.136,
+              26.10675
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-04",
+        "area_km2": 19.97,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.956,
+              26.17425
+            ],
+            [
+              90.96313,
+              26.17425
+            ],
+            [
+              90.96313,
+              26.18227
+            ],
+            [
+              90.956,
+              26.18227
+            ],
+            [
+              90.956,
+              26.17425
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-06",
+        "area_km2": 5.92,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.016,
+              26.17425
+            ],
+            [
+              91.04008,
+              26.17425
+            ],
+            [
+              91.04008,
+              26.20134
+            ],
+            [
+              91.016,
+              26.20134
+            ],
+            [
+              91.016,
+              26.17425
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-07",
+        "area_km2": 20.01,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.076,
+              26.17425
+            ],
+            [
+              91.09987,
+              26.17425
+            ],
+            [
+              91.09987,
+              26.2011
+            ],
+            [
+              91.076,
+              26.2011
+            ],
+            [
+              91.076,
+              26.17425
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-08",
+        "area_km2": 19.83,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.136,
+              26.17425
+            ],
+            [
+              91.15371,
+              26.17425
+            ],
+            [
+              91.15371,
+              26.19418
+            ],
+            [
+              91.136,
+              26.19418
+            ],
+            [
+              91.136,
+              26.17425
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-09",
+        "area_km2": 14.72,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.196,
+              26.17425
+            ],
+            [
+              91.20783,
+              26.17425
+            ],
+            [
+              91.20783,
+              26.18755
+            ],
+            [
+              91.196,
+              26.18755
+            ],
+            [
+              91.196,
+              26.17425
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-10",
+        "area_km2": 9.83,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.956,
+              26.24175
+            ],
+            [
+              90.97695,
+              26.24175
+            ],
+            [
+              90.97695,
+              26.26532
+            ],
+            [
+              90.956,
+              26.26532
+            ],
+            [
+              90.956,
+              26.24175
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-11",
+        "area_km2": 17.41,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.016,
+              26.24175
+            ],
+            [
+              91.04662,
+              26.24175
+            ],
+            [
+              91.04662,
+              26.2762
+            ],
+            [
+              91.016,
+              26.2762
+            ],
+            [
+              91.016,
+              26.24175
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-12",
+        "area_km2": 25.44,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.076,
+              26.24175
+            ],
+            [
+              91.09269,
+              26.24175
+            ],
+            [
+              91.09269,
+              26.26052
+            ],
+            [
+              91.076,
+              26.26052
+            ],
+            [
+              91.076,
+              26.24175
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-13",
+        "area_km2": 13.86,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.136,
+              26.24175
+            ],
+            [
+              91.17434,
+              26.24175
+            ],
+            [
+              91.17434,
+              26.28488
+            ],
+            [
+              91.136,
+              26.28488
+            ],
+            [
+              91.136,
+              26.24175
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-14",
+        "area_km2": 31.86,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.196,
+              26.24175
+            ],
+            [
+              91.2014,
+              26.24175
+            ],
+            [
+              91.2014,
+              26.24782
+            ],
+            [
+              91.196,
+              26.24782
+            ],
+            [
+              91.196,
+              26.24175
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-15",
+        "area_km2": 4.49,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              90.956,
+              26.30925
+            ],
+            [
+              90.96453,
+              26.30925
+            ],
+            [
+              90.96453,
+              26.31885
+            ],
+            [
+              90.956,
+              26.31885
+            ],
+            [
+              90.956,
+              26.30925
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-16",
+        "area_km2": 7.09,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.016,
+              26.30925
+            ],
+            [
+              91.02318,
+              26.30925
+            ],
+            [
+              91.02318,
+              26.31733
+            ],
+            [
+              91.016,
+              26.31733
+            ],
+            [
+              91.016,
+              26.30925
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-17",
+        "area_km2": 5.97,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.076,
+              26.30925
+            ],
+            [
+              91.09998,
+              26.30925
+            ],
+            [
+              91.09998,
+              26.33622
+            ],
+            [
+              91.076,
+              26.33622
+            ],
+            [
+              91.076,
+              26.30925
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-18",
+        "area_km2": 19.92,
+        "source": "SAR_Sentinel1"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              91.136,
+              26.30925
+            ],
+            [
+              91.14961,
+              26.30925
+            ],
+            [
+              91.14961,
+              26.32456
+            ],
+            [
+              91.136,
+              26.32456
+            ],
+            [
+              91.136,
+              26.30925
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "ZONE-19",
+        "area_km2": 11.31,
+        "source": "SAR_Sentinel1"
+      }
+    }
+  ]
+}

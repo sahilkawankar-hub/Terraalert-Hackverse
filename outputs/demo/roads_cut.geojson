@@ -1,0 +1,880 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ROAD-02-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.02767,
+            26.11692
+          ],
+          [
+            91.03483,
+            26.11917
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-02-1",
+        "name": "Tertiary Road 2",
+        "road_type": "tertiary",
+        "length_km": 1.84,
+        "zone_id": "ZONE-02",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-03-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.08283,
+            26.12354
+          ],
+          [
+            91.08926,
+            26.13105
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-03-1",
+        "name": "Tertiary Road 3",
+        "road_type": "tertiary",
+        "length_km": 0.91,
+        "zone_id": "ZONE-03",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-03-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.10158,
+            26.11484
+          ],
+          [
+            91.10847,
+            26.11762
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-03-2",
+        "name": "Primary Road 3",
+        "road_type": "primary",
+        "length_km": 1.8,
+        "zone_id": "ZONE-03",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-04-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.14493,
+            26.13034
+          ],
+          [
+            91.15303,
+            26.13733
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-04-1",
+        "name": "Tertiary Road 4",
+        "road_type": "tertiary",
+        "length_km": 2.23,
+        "zone_id": "ZONE-04",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-04-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.14636,
+            26.13327
+          ],
+          [
+            91.14961,
+            26.13975
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-04-2",
+        "name": "Secondary Road 4",
+        "road_type": "secondary",
+        "length_km": 0.61,
+        "zone_id": "ZONE-04",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-04-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.1512,
+            26.15387
+          ],
+          [
+            91.15348,
+            26.15955
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-04-3",
+        "name": "Residential Road 4",
+        "road_type": "residential",
+        "length_km": 2.28,
+        "zone_id": "ZONE-04",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-06-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.98116,
+            26.19734
+          ],
+          [
+            90.98323,
+            26.20188
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-06-1",
+        "name": "Primary Road 6",
+        "road_type": "primary",
+        "length_km": 1.49,
+        "zone_id": "ZONE-06",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-07-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.04371,
+            26.21899
+          ],
+          [
+            91.0462,
+            26.22497
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-07-1",
+        "name": "Secondary Road 7",
+        "road_type": "secondary",
+        "length_km": 1.98,
+        "zone_id": "ZONE-07",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-07-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.05501,
+            26.20994
+          ],
+          [
+            91.06159,
+            26.21755
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-07-2",
+        "name": "Secondary Road 7",
+        "road_type": "secondary",
+        "length_km": 1.63,
+        "zone_id": "ZONE-07",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-07-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.0344,
+            26.19871
+          ],
+          [
+            91.03654,
+            26.20203
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-07-3",
+        "name": "Tertiary Road 7",
+        "road_type": "tertiary",
+        "length_km": 1.18,
+        "zone_id": "ZONE-07",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-08-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.085,
+            26.1805
+          ],
+          [
+            91.0935,
+            26.18686
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-08-1",
+        "name": "Residential Road 8",
+        "road_type": "residential",
+        "length_km": 0.82,
+        "zone_id": "ZONE-08",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-08-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.10991,
+            26.18325
+          ],
+          [
+            91.11187,
+            26.18838
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-08-2",
+        "name": "Residential Road 8",
+        "road_type": "residential",
+        "length_km": 1.34,
+        "zone_id": "ZONE-08",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-08-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.11228,
+            26.17681
+          ],
+          [
+            91.11858,
+            26.18383
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-08-3",
+        "name": "Residential Road 8",
+        "road_type": "residential",
+        "length_km": 1.23,
+        "zone_id": "ZONE-08",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-09-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.1767,
+            26.21802
+          ],
+          [
+            91.18452,
+            26.22083
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-09-1",
+        "name": "Primary Road 9",
+        "road_type": "primary",
+        "length_km": 0.52,
+        "zone_id": "ZONE-09",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-09-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.17232,
+            26.21689
+          ],
+          [
+            91.1748,
+            26.21826
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-09-2",
+        "name": "Secondary Road 9",
+        "road_type": "secondary",
+        "length_km": 1.37,
+        "zone_id": "ZONE-09",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-09-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.14798,
+            26.20716
+          ],
+          [
+            91.15488,
+            26.21538
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-09-3",
+        "name": "Residential Road 9",
+        "road_type": "residential",
+        "length_km": 1.16,
+        "zone_id": "ZONE-09",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-10-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.19839,
+            26.19824
+          ],
+          [
+            91.20623,
+            26.20019
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-10-1",
+        "name": "Secondary Road 10",
+        "road_type": "secondary",
+        "length_km": 1.59,
+        "zone_id": "ZONE-10",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-11-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.96716,
+            26.24793
+          ],
+          [
+            90.97339,
+            26.25329
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-11-1",
+        "name": "Secondary Road 11",
+        "road_type": "secondary",
+        "length_km": 1.88,
+        "zone_id": "ZONE-11",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-11-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.95639,
+            26.2711
+          ],
+          [
+            90.96198,
+            26.27333
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-11-2",
+        "name": "Primary Road 11",
+        "road_type": "primary",
+        "length_km": 2.34,
+        "zone_id": "ZONE-11",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-11-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.96156,
+            26.25824
+          ],
+          [
+            90.9633,
+            26.26173
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-11-3",
+        "name": "Tertiary Road 11",
+        "road_type": "tertiary",
+        "length_km": 1.48,
+        "zone_id": "ZONE-11",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-12-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.04718,
+            26.24909
+          ],
+          [
+            91.05058,
+            26.25229
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-12-1",
+        "name": "Primary Road 12",
+        "road_type": "primary",
+        "length_km": 0.88,
+        "zone_id": "ZONE-12",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-13-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.09891,
+            26.28118
+          ],
+          [
+            91.10465,
+            26.28383
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-13-1",
+        "name": "Secondary Road 13",
+        "road_type": "secondary",
+        "length_km": 0.55,
+        "zone_id": "ZONE-13",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-14-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.1769,
+            26.27716
+          ],
+          [
+            91.18532,
+            26.28059
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-14-1",
+        "name": "Residential Road 14",
+        "road_type": "residential",
+        "length_km": 2.25,
+        "zone_id": "ZONE-14",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-14-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.17302,
+            26.24292
+          ],
+          [
+            91.17997,
+            26.24718
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-14-2",
+        "name": "Secondary Road 14",
+        "road_type": "secondary",
+        "length_km": 0.66,
+        "zone_id": "ZONE-14",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-14-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.14721,
+            26.27895
+          ],
+          [
+            91.14925,
+            26.28795
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-14-3",
+        "name": "Secondary Road 14",
+        "road_type": "secondary",
+        "length_km": 2.35,
+        "zone_id": "ZONE-14",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-16-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.98577,
+            26.30933
+          ],
+          [
+            90.99419,
+            26.3154
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-16-1",
+        "name": "Primary Road 16",
+        "road_type": "primary",
+        "length_km": 0.72,
+        "zone_id": "ZONE-16",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-16-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.9713,
+            26.31256
+          ],
+          [
+            90.97768,
+            26.31681
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-16-2",
+        "name": "Secondary Road 16",
+        "road_type": "secondary",
+        "length_km": 1.88,
+        "zone_id": "ZONE-16",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-16-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            90.98623,
+            26.32344
+          ],
+          [
+            90.98984,
+            26.32837
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-16-3",
+        "name": "Primary Road 16",
+        "road_type": "primary",
+        "length_km": 0.99,
+        "zone_id": "ZONE-16",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-17-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.04367,
+            26.32266
+          ],
+          [
+            91.05005,
+            26.32944
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-17-1",
+        "name": "Secondary Road 17",
+        "road_type": "secondary",
+        "length_km": 1.42,
+        "zone_id": "ZONE-17",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-18-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.09279,
+            26.31622
+          ],
+          [
+            91.09935,
+            26.3254
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-18-1",
+        "name": "Residential Road 18",
+        "road_type": "residential",
+        "length_km": 1.83,
+        "zone_id": "ZONE-18",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-18-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.10869,
+            26.31959
+          ],
+          [
+            91.11616,
+            26.32705
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-18-2",
+        "name": "Primary Road 18",
+        "road_type": "primary",
+        "length_km": 2.19,
+        "zone_id": "ZONE-18",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-18-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.11453,
+            26.31498
+          ],
+          [
+            91.11677,
+            26.32041
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-18-3",
+        "name": "Secondary Road 18",
+        "road_type": "secondary",
+        "length_km": 1.32,
+        "zone_id": "ZONE-18",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-19-1",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.15011,
+            26.35145
+          ],
+          [
+            91.15194,
+            26.35412
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-19-1",
+        "name": "Tertiary Road 19",
+        "road_type": "tertiary",
+        "length_km": 0.93,
+        "zone_id": "ZONE-19",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-19-2",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.16567,
+            26.31228
+          ],
+          [
+            91.17005,
+            26.31839
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-19-2",
+        "name": "Secondary Road 19",
+        "road_type": "secondary",
+        "length_km": 1.14,
+        "zone_id": "ZONE-19",
+        "status": "submerged"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ROAD-19-3",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            91.17098,
+            26.32765
+          ],
+          [
+            91.17818,
+            26.3373
+          ]
+        ]
+      },
+      "properties": {
+        "road_id": "ROAD-19-3",
+        "name": "Secondary Road 19",
+        "road_type": "secondary",
+        "length_km": 1.21,
+        "zone_id": "ZONE-19",
+        "status": "submerged"
+      }
+    }
+  ]
+}

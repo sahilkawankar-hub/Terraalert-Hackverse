@@ -1,0 +1,869 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "FAC-01-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.98848,
+          26.15493
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-01-1",
+        "name": "Hospital 1-1",
+        "type": "hospital",
+        "zone_id": "ZONE-01",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-01-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.98434,
+          26.10847
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-01-2",
+        "name": "Hospital 1-2",
+        "type": "hospital",
+        "zone_id": "ZONE-01",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-02-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.03614,
+          26.13101
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-02-1",
+        "name": "Water Plant 2-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-02",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-02-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.05485,
+          26.1071
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-02-2",
+        "name": "School 2-2",
+        "type": "school",
+        "zone_id": "ZONE-02",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-03-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.08199,
+          26.15655
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-03-1",
+        "name": "Water Plant 3-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-03",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-03-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.11581,
+          26.14015
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-03-2",
+        "name": "School 3-2",
+        "type": "school",
+        "zone_id": "ZONE-03",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-03-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.08523,
+          26.11051
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-03-3",
+        "name": "Water Plant 3-3",
+        "type": "water_plant",
+        "zone_id": "ZONE-03",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-03-4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.12329,
+          26.15294
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-03-4",
+        "name": "School 3-4",
+        "type": "school",
+        "zone_id": "ZONE-03",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-04-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.17646,
+          26.14865
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-04-1",
+        "name": "School 4-1",
+        "type": "school",
+        "zone_id": "ZONE-04",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-04-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.17464,
+          26.12841
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-04-2",
+        "name": "Hospital 4-2",
+        "type": "hospital",
+        "zone_id": "ZONE-04",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-05-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.19905,
+          26.12736
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-05-1",
+        "name": "Water Plant 5-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-05",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-05-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.2214,
+          26.15919
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-05-2",
+        "name": "Shelter 5-2",
+        "type": "shelter",
+        "zone_id": "ZONE-05",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-05-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.22865,
+          26.11294
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-05-3",
+        "name": "Hospital 5-3",
+        "type": "hospital",
+        "zone_id": "ZONE-05",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-05-4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.23204,
+          26.14825
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-05-4",
+        "name": "Water Plant 5-4",
+        "type": "water_plant",
+        "zone_id": "ZONE-05",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-06-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.99257,
+          26.20166
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-06-1",
+        "name": "Water Plant 6-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-06",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-06-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.99778,
+          26.19037
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-06-2",
+        "name": "Hospital 6-2",
+        "type": "hospital",
+        "zone_id": "ZONE-06",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-06-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.98523,
+          26.1825
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-06-3",
+        "name": "Water Plant 6-3",
+        "type": "water_plant",
+        "zone_id": "ZONE-06",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-07-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.05113,
+          26.21832
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-07-1",
+        "name": "Hospital 7-1",
+        "type": "hospital",
+        "zone_id": "ZONE-07",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-08-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.07924,
+          26.17595
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-08-1",
+        "name": "Clinic 8-1",
+        "type": "clinic",
+        "zone_id": "ZONE-08",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-09-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.14513,
+          26.19848
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-09-1",
+        "name": "Clinic 9-1",
+        "type": "clinic",
+        "zone_id": "ZONE-09",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-09-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.15821,
+          26.22147
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-09-2",
+        "name": "School 9-2",
+        "type": "school",
+        "zone_id": "ZONE-09",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-10-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.23132,
+          26.17754
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-10-1",
+        "name": "Water Plant 10-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-10",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-11-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.98454,
+          26.2752
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-11-1",
+        "name": "Water Plant 11-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-11",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-11-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.98313,
+          26.25883
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-11-2",
+        "name": "Water Plant 11-2",
+        "type": "water_plant",
+        "zone_id": "ZONE-11",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-12-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.03037,
+          26.27757
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-12-1",
+        "name": "Water Plant 12-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-12",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-13-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.08043,
+          26.26462
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-13-1",
+        "name": "Hospital 13-1",
+        "type": "hospital",
+        "zone_id": "ZONE-13",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-13-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.09201,
+          26.24881
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-13-2",
+        "name": "Hospital 13-2",
+        "type": "hospital",
+        "zone_id": "ZONE-13",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-13-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.11158,
+          26.27154
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-13-3",
+        "name": "Clinic 13-3",
+        "type": "clinic",
+        "zone_id": "ZONE-13",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-14-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.14608,
+          26.25522
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-14-1",
+        "name": "School 14-1",
+        "type": "school",
+        "zone_id": "ZONE-14",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-15-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.23539,
+          26.2888
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-15-1",
+        "name": "School 15-1",
+        "type": "school",
+        "zone_id": "ZONE-15",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-15-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.19714,
+          26.25218
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-15-2",
+        "name": "Clinic 15-2",
+        "type": "clinic",
+        "zone_id": "ZONE-15",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-15-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.20937,
+          26.2455
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-15-3",
+        "name": "School 15-3",
+        "type": "school",
+        "zone_id": "ZONE-15",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-16-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.96154,
+          26.36165
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-16-1",
+        "name": "Hospital 16-1",
+        "type": "hospital",
+        "zone_id": "ZONE-16",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-16-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.95784,
+          26.34146
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-16-2",
+        "name": "School 16-2",
+        "type": "school",
+        "zone_id": "ZONE-16",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-16-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          90.97695,
+          26.3624
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-16-3",
+        "name": "School 16-3",
+        "type": "school",
+        "zone_id": "ZONE-16",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-17-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.04554,
+          26.3255
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-17-1",
+        "name": "Clinic 17-1",
+        "type": "clinic",
+        "zone_id": "ZONE-17",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-17-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.05602,
+          26.32566
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-17-2",
+        "name": "Water Plant 17-2",
+        "type": "water_plant",
+        "zone_id": "ZONE-17",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-17-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.03663,
+          26.34057
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-17-3",
+        "name": "Clinic 17-3",
+        "type": "clinic",
+        "zone_id": "ZONE-17",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-17-4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.03832,
+          26.33313
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-17-4",
+        "name": "School 17-4",
+        "type": "school",
+        "zone_id": "ZONE-17",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-18-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.07717,
+          26.32247
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-18-1",
+        "name": "Clinic 18-1",
+        "type": "clinic",
+        "zone_id": "ZONE-18",
+        "in_flood": true
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-18-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.09786,
+          26.3571
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-18-2",
+        "name": "Hospital 18-2",
+        "type": "hospital",
+        "zone_id": "ZONE-18",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-19-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.17512,
+          26.35742
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-19-1",
+        "name": "Water Plant 19-1",
+        "type": "water_plant",
+        "zone_id": "ZONE-19",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-19-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.1574,
+          26.31784
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-19-2",
+        "name": "Water Plant 19-2",
+        "type": "water_plant",
+        "zone_id": "ZONE-19",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-19-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.14844,
+          26.3226
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-19-3",
+        "name": "Shelter 19-3",
+        "type": "shelter",
+        "zone_id": "ZONE-19",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-19-4",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.15926,
+          26.32217
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-19-4",
+        "name": "Water Plant 19-4",
+        "type": "water_plant",
+        "zone_id": "ZONE-19",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-20-1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.23217,
+          26.35534
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-20-1",
+        "name": "School 20-1",
+        "type": "school",
+        "zone_id": "ZONE-20",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-20-2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.22183,
+          26.34892
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-20-2",
+        "name": "Shelter 20-2",
+        "type": "shelter",
+        "zone_id": "ZONE-20",
+        "in_flood": false
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "FAC-20-3",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          91.23909,
+          26.33561
+        ]
+      },
+      "properties": {
+        "facility_id": "FAC-20-3",
+        "name": "Water Plant 20-3",
+        "type": "water_plant",
+        "zone_id": "ZONE-20",
+        "in_flood": false
+      }
+    }
+  ]
+}

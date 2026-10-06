@@ -1,0 +1,49 @@
+{
+  "event": "Assam Floods, June 2022 (Barpeta-Nalbari, Brahmaputra north bank)",
+  "satellite": "Sentinel-1 (C-SAR)",
+  "pass": "DESCENDING",
+  "relative_orbit": null,
+  "pre_dates": [
+    "2022-04-20",
+    "2022-05-10"
+  ],
+  "post_dates": [
+    "2022-06-17",
+    "2022-06-30"
+  ],
+  "time_gap_days": 38,
+  "s2_cloud_fraction": 0.12,
+  "ml_available_fraction": 0.0,
+  "model_name": "ibm-nasa-geospatial/Prithvi-EO-2.0-300M-TL-Sen1Floods11",
+  "model_fallback": "ibm-nasa-geospatial/Prithvi-EO-1.0-100M-sen1floods11",
+  "thresholds": {
+    "post_db_max": -18.0,
+    "diff_db_max": -3.0,
+    "slope_max_deg": 5.0,
+    "min_object_pixels": 25,
+    "min_flood_pct": 1.0
+  },
+  "weights": {
+    "severity": 0.3,
+    "people": 0.3,
+    "facilities": 0.2,
+    "roads": 0.2
+  },
+  "tier_fractions": {
+    "p1": 0.2,
+    "p2": 0.3
+  },
+  "demo": true,
+  "mock": true,
+  "fallbacks": {
+    "ml": "not run"
+  },
+  "aoi_bbox": [
+    90.95,
+    26.1,
+    91.25,
+    26.37
+  ],
+  "grid_crs": "EPSG:32646",
+  "pixel_size_m": 20
+}
