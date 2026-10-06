@@ -45,7 +45,7 @@
   },
   "demo": false,
   "mock": false,
-  "updated_at": "2026-10-06T04:52:10.879444+00:00",
+  "updated_at": "2026-10-06T08:08:54.724481+00:00",
   "flood_classical_summary": {
     "flooded_pixels": 3698,
     "flooded_pct": 1.12,
@@ -84,5 +84,31 @@
     "aoi_disclaimer": "Sen1Floods11 chips do not geographically overlap the Barpeta-Nalbari AOI. Zero accuracy is claimed on the project AOI per AGENT_CONTEXT rule 5.",
     "pre_event_source": "COPERNICUS/S1_GRD (May 2019, Relative Orbit 143, ASCENDING)",
     "post_event_source": "Sen1Floods11 S1Hand (July 2019, Relative Orbit 143, ASCENDING)"
+  },
+  "s2": {
+    "collection": "COPERNICUS/S2_SR_HARMONIZED",
+    "cloud_mask": "SCL classes 3,7,8,9,10,11 masked",
+    "composite_strategy": "least_cloudy_single_image",
+    "bands": [
+      "B2",
+      "B3",
+      "B4",
+      "B8A",
+      "B11",
+      "B12"
+    ],
+    "pre_window": [
+      "2022-04-20",
+      "2022-05-10"
+    ],
+    "post_window": [
+      "2022-06-17",
+      "2022-06-30"
+    ],
+    "pre_cloud_pct": 3.34,
+    "post_cloud_pct": 70.01,
+    "pre_usable_fraction": 0.9666,
+    "post_usable_fraction": 0.2999,
+    "note": "Assam June is monsoon season; reported fractions are actual, not inflated."
   }
 }

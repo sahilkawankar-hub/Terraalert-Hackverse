@@ -87,6 +87,8 @@ FUSION_RULE: str = "classical_plus_ml"
 
 # --- A settings ---
 USE_OTSU: bool = False
+ML_BATCH_SIZE: int = 1          # tiles per forward pass; reduce to 1 if GPU OOM
+S2_COLLECTION: str = "COPERNICUS/S2_SR_HARMONIZED"   # confirmed active collection ID
 
 # --- B settings ---
 

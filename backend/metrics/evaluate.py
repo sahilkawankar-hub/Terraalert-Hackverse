@@ -151,6 +151,79 @@ def check_and_record_metrics(
             "overlapping_chips": [],
         }
 
+def evaluate_ml_water_on_chips(
+    pred_water: np.ndarray,
+    chip_id: str,
+    raw_dir: Optional[Path] = None,
+    meta_path: Optional[Path] = None,
+    record_meta: bool = True,
+) -> Dict[str, Any]:
+    """Score an ML water-prediction mask against Sen1Floods11 LabelHand.
+
+    This validates the model's preprocessing and output on labelled India chips.
+    It does NOT claim accuracy on the project AOI (Barpeta-Nalbari, Assam).
+    Per AGENT_CONTEXT rule 5: chips do not overlap the AOI. Never present
+    this metric as the project's flood-map accuracy.
+
+    Parameters
+    ----------
+    pred_water : np.ndarray
+        Predicted water mask, uint8, same shape as chip (1=water, 0=land, 255=nodata).
+    chip_id : str
+        Sen1Floods11 chip identifier, e.g. 'India_1017769'.
+    raw_dir : Path, optional
+        Path to data/raw/ directory.
+    meta_path : Path, optional
+        Path to meta.json.
+    record_meta : bool
+        If True, write results to meta.json under metrics.ml_water_on_chips.
+
+    Returns
+    -------
+    dict with keys: iou, precision, recall, f1, chip_id, disclaimer
+    """
+    if raw_dir is None:
+        raw_dir = config.DATA_DIR / "raw"
+    if meta_path is None:
+        meta_path = config.OUTPUTS_DIR / "meta.json"
+
+    lbl_path = raw_dir / "LabelHand" / f"{chip_id}_LabelHand.tif"
+    if not lbl_path.exists():
+        raise FileNotFoundError(f"LabelHand not found: {lbl_path}")
+
+    with rasterio.open(lbl_path) as src:
+        label = src.read(1).astype(np.int16)
+
+    metrics = compute_binary_metrics(pred_water, label)
+    disclaimer = (
+        "Scored on Sen1Floods11 India S2Hand chip (different event from Assam 2022 AOI). "
+        "Per AGENT_CONTEXT rule 5, zero accuracy is claimed on the project AOI."
+    )
+    metrics["chip_id"] = chip_id
+    metrics["disclaimer"] = disclaimer
+
+    if record_meta:
+        update_meta(
+            meta_path,
+            {
+                "metrics": {
+                    "ml_water_on_chips": {
+                        "chip_id": chip_id,
+                        "iou": metrics["iou"],
+                        "precision": metrics["precision"],
+                        "recall": metrics["recall"],
+                        "f1": metrics["f1"],
+                        "valid_pixels": metrics["valid_pixels"],
+                        "disclaimer": disclaimer,
+                    }
+                }
+            },
+        )
+        logger.info("Recorded ML chip metrics for %s in %s", chip_id, meta_path)
+
+    return metrics
+
+
 def evaluate_chip_benchmark(
     chip_id: str = "India_1017769",
     raw_dir: Optional[Path] = None,
