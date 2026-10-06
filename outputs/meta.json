@@ -83,7 +83,11 @@
     "aoi_overlap": false,
     "aoi_disclaimer": "Sen1Floods11 chips do not geographically overlap the Barpeta-Nalbari AOI. Zero accuracy is claimed on the project AOI per AGENT_CONTEXT rule 5.",
     "pre_event_source": "COPERNICUS/S1_GRD (May 2019, Relative Orbit 143, ASCENDING)",
-    "post_event_source": "Sen1Floods11 S1Hand (July 2019, Relative Orbit 143, ASCENDING)"
+    "post_event_source": "Sen1Floods11 S1Hand (July 2019, Relative Orbit 143, ASCENDING)",
+    "fused": {
+      "status": "not evaluated on AOI (no overlapping reference dataset)",
+      "aoi_disclaimer": "Per AGENT_CONTEXT rule 5, zero accuracy claimed on AOI."
+    }
   },
   "s2": {
     "collection": "COPERNICUS/S2_SR_HARMONIZED",
@@ -110,5 +114,25 @@
     "pre_usable_fraction": 0.9666,
     "post_usable_fraction": 0.2999,
     "note": "Assam June is monsoon season; reported fractions are actual, not inflated."
+  },
+  "fusion": {
+    "rule": "classical_plus_ml",
+    "rule_description": "classical_plus_ml: SAR classical flood plus high-confidence ML detections; classical only where ML is unavailable.",
+    "classical_flood_pixels": 3698,
+    "classical_flood_km2": 1.479,
+    "ml_flood_pixels": 0,
+    "ml_flood_km2": 0.0,
+    "fused_flood_pixels": 3698,
+    "fused_flood_km2": 1.479,
+    "agreement_counts": {
+      "neither_0": 2239777,
+      "single_method_1": 3698,
+      "both_methods_2": 0,
+      "nodata_255": 0
+    },
+    "method_availability": {
+      "both_available_pixels": 2243475,
+      "ml_unavailable_pixels": 0
+    }
   }
 }

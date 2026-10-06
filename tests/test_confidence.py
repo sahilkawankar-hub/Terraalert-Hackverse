@@ -20,6 +20,7 @@ import rasterio
 from rasterio.transform import from_origin
 from shapely.geometry import box
 
+import config
 from backend.fusion.confidence import (
     add_zone_confidence,
     compute_pixel_confidence_array,
@@ -185,3 +186,153 @@ def test_compute_time_penalty():
     pen_long, score_long = compute_time_penalty(100)
     assert pen_long == 0.5
     assert score_long == 0.5
+
+
+def test_both_agree_on_flat_terrain_high(tmp_path: Path):
+    """When both SAR and Optical ML agree on flat terrain, confidence must be High."""
+    out_dir = tmp_path / "outputs_both_agree"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    transform = from_origin(200000.0, 2900000.0, 20.0, 20.0)
+    prof_f32 = {
+        "driver": "GTiff", "height": 50, "width": 50, "count": 1,
+        "dtype": "float32", "crs": "EPSG:32646", "transform": transform,
+    }
+    prof_u8 = prof_f32.copy()
+    prof_u8.update(dtype="uint8", nodata=255)
+
+    # Flat slope, strong backscatter drop
+    pre = np.full((50, 50), -12.0, dtype=np.float32)
+    post = np.full((50, 50), -24.0, dtype=np.float32)
+    slope = np.full((50, 50), 2.0, dtype=np.float32)
+    perm = np.zeros((50, 50), dtype=np.uint8)
+
+    # Both flag flood
+    flood_c = np.ones((50, 50), dtype=np.uint8)
+    flood_m = np.ones((50, 50), dtype=np.uint8)
+    agreement = np.full((50, 50), 2, dtype=np.uint8)  # both agree
+    method_mask = np.zeros((50, 50), dtype=np.uint8)  # both available
+
+    with rasterio.open(out_dir / "pre.tif", "w", **prof_f32) as dst: dst.write(pre, 1)
+    with rasterio.open(out_dir / "post.tif", "w", **prof_f32) as dst: dst.write(post, 1)
+    with rasterio.open(out_dir / "slope.tif", "w", **prof_f32) as dst: dst.write(slope, 1)
+    with rasterio.open(out_dir / "perm_water.tif", "w", **prof_u8) as dst: dst.write(perm, 1)
+    with rasterio.open(out_dir / "flood_classical.tif", "w", **prof_u8) as dst: dst.write(flood_c, 1)
+    with rasterio.open(out_dir / "flood_ml.tif", "w", **prof_u8) as dst: dst.write(flood_m, 1)
+    with rasterio.open(out_dir / "flood_fused.tif", "w", **prof_u8) as dst: dst.write(flood_c, 1)
+    with rasterio.open(out_dir / "agreement.tif", "w", **prof_u8) as dst: dst.write(agreement, 1)
+    with rasterio.open(out_dir / "method_mask.tif", "w", **prof_u8) as dst: dst.write(method_mask, 1)
+
+    meta = {"time_gap_days": 12, "grid_crs": "EPSG:32646"}
+    (out_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+
+    geom = box(200100.0, 2899100.0, 200900.0, 2899900.0)
+    zones = gpd.GeoDataFrame({"zone_id": ["z_agree_flat"]}, geometry=[geom], crs="EPSG:32646")
+
+    scored = add_zone_confidence(zones, outputs_dir=out_dir)
+
+    assert scored.iloc[0]["confidence"] == "High"
+    assert scored.iloc[0]["confidence_score"] >= 0.70
+    assert scored.iloc[0]["conf_detail"]["agreement_ratio"] == 1.0
+    assert scored.iloc[0]["conf_detail"]["terrain_penalty"] == 0.0
+
+
+def test_single_method_on_steep_slope_low(tmp_path: Path):
+    """Single-method detection on steep slope must score Low with reason naming both factors."""
+    out_dir = tmp_path / "outputs_single_steep"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    transform = from_origin(200000.0, 2900000.0, 20.0, 20.0)
+    prof_f32 = {
+        "driver": "GTiff", "height": 50, "width": 50, "count": 1,
+        "dtype": "float32", "crs": "EPSG:32646", "transform": transform,
+    }
+    prof_u8 = prof_f32.copy()
+    prof_u8.update(dtype="uint8", nodata=255)
+
+    # Steep slope (25 deg > 15 deg), moderate margin
+    pre = np.full((50, 50), -12.0, dtype=np.float32)
+    post = np.full((50, 50), -18.5, dtype=np.float32)
+    slope = np.full((50, 50), 25.0, dtype=np.float32)
+    perm = np.zeros((50, 50), dtype=np.uint8)
+
+    # Only single method flags flood (classical flags flood, ML says no flood)
+    flood_c = np.ones((50, 50), dtype=np.uint8)
+    flood_m = np.zeros((50, 50), dtype=np.uint8)
+    agreement = np.full((50, 50), 1, dtype=np.uint8)  # exactly one method flags flood
+    method_mask = np.zeros((50, 50), dtype=np.uint8)  # both available, but disagree
+
+    with rasterio.open(out_dir / "pre.tif", "w", **prof_f32) as dst: dst.write(pre, 1)
+    with rasterio.open(out_dir / "post.tif", "w", **prof_f32) as dst: dst.write(post, 1)
+    with rasterio.open(out_dir / "slope.tif", "w", **prof_f32) as dst: dst.write(slope, 1)
+    with rasterio.open(out_dir / "perm_water.tif", "w", **prof_u8) as dst: dst.write(perm, 1)
+    with rasterio.open(out_dir / "flood_classical.tif", "w", **prof_u8) as dst: dst.write(flood_c, 1)
+    with rasterio.open(out_dir / "flood_ml.tif", "w", **prof_u8) as dst: dst.write(flood_m, 1)
+    with rasterio.open(out_dir / "flood_fused.tif", "w", **prof_u8) as dst: dst.write(flood_c, 1)
+    with rasterio.open(out_dir / "agreement.tif", "w", **prof_u8) as dst: dst.write(agreement, 1)
+    with rasterio.open(out_dir / "method_mask.tif", "w", **prof_u8) as dst: dst.write(method_mask, 1)
+
+    meta = {"time_gap_days": 12, "grid_crs": "EPSG:32646"}
+    (out_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+
+    geom = box(200100.0, 2899100.0, 200900.0, 2899900.0)
+    zones = gpd.GeoDataFrame({"zone_id": ["z_single_steep"]}, geometry=[geom], crs="EPSG:32646")
+
+    scored = add_zone_confidence(zones, outputs_dir=out_dir)
+
+    assert scored.iloc[0]["confidence"] == "Low"
+    assert scored.iloc[0]["confidence_score"] < 0.40
+    assert scored.iloc[0]["conf_detail"]["agreement_ratio"] == 0.0
+    assert scored.iloc[0]["conf_detail"]["terrain_penalty"] == 1.0
+
+    reason_lower = scored.iloc[0]["reason"].lower()
+    # Reason must name BOTH single-method (or disagree) AND steep terrain
+    assert ("single-method" in reason_lower or "disagree" in reason_lower)
+    assert "steep terrain" in reason_lower
+
+
+def test_ml_unavailable_penalty_applied(tmp_path: Path):
+    """When ML is unavailable, the method penalty must be applied."""
+    out_dir = tmp_path / "outputs_unavail"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    transform = from_origin(200000.0, 2900000.0, 20.0, 20.0)
+    prof_f32 = {
+        "driver": "GTiff", "height": 50, "width": 50, "count": 1,
+        "dtype": "float32", "crs": "EPSG:32646", "transform": transform,
+    }
+    prof_u8 = prof_f32.copy()
+    prof_u8.update(dtype="uint8", nodata=255)
+
+    pre = np.full((50, 50), -12.0, dtype=np.float32)
+    post = np.full((50, 50), -24.0, dtype=np.float32)
+    slope = np.full((50, 50), 2.0, dtype=np.float32)
+    perm = np.zeros((50, 50), dtype=np.uint8)
+
+    flood_c = np.ones((50, 50), dtype=np.uint8)
+    # ML is completely unavailable (unusable/cloud/nodata = 255)
+    flood_m = np.full((50, 50), 255, dtype=np.uint8)
+    agreement = np.ones((50, 50), dtype=np.uint8)     # single method (classical)
+    method_mask = np.ones((50, 50), dtype=np.uint8)   # 1 = ML unavailable
+
+    with rasterio.open(out_dir / "pre.tif", "w", **prof_f32) as dst: dst.write(pre, 1)
+    with rasterio.open(out_dir / "post.tif", "w", **prof_f32) as dst: dst.write(post, 1)
+    with rasterio.open(out_dir / "slope.tif", "w", **prof_f32) as dst: dst.write(slope, 1)
+    with rasterio.open(out_dir / "perm_water.tif", "w", **prof_u8) as dst: dst.write(perm, 1)
+    with rasterio.open(out_dir / "flood_classical.tif", "w", **prof_u8) as dst: dst.write(flood_c, 1)
+    with rasterio.open(out_dir / "flood_ml.tif", "w", **prof_u8) as dst: dst.write(flood_m, 1)
+    with rasterio.open(out_dir / "flood_fused.tif", "w", **prof_u8) as dst: dst.write(flood_c, 1)
+    with rasterio.open(out_dir / "agreement.tif", "w", **prof_u8) as dst: dst.write(agreement, 1)
+    with rasterio.open(out_dir / "method_mask.tif", "w", **prof_u8) as dst: dst.write(method_mask, 1)
+
+    meta = {"time_gap_days": 12, "grid_crs": "EPSG:32646"}
+    (out_dir / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+
+    geom = box(200100.0, 2899100.0, 200900.0, 2899900.0)
+    zones = gpd.GeoDataFrame({"zone_id": ["z_unavail"]}, geometry=[geom], crs="EPSG:32646")
+
+    scored = add_zone_confidence(zones, outputs_dir=out_dir)
+
+    penalty = scored.iloc[0]["conf_detail"]["method_penalty"]
+    assert penalty > 0.0  # penalty is applied!
+    assert penalty == round(config.METHOD_PENALTY_MAX, 3)

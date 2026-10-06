@@ -1,34 +1,45 @@
 """
 TerraAlert — Decision fusion and confidence scoring.
 
-Produces pixel-level and zone-level confidence scores combining three independent signals:
-  1. Detection Margin (weight 0.5):
+Produces pixel-level and zone-level confidence scores combining five signals:
+  1. Multi-Method Agreement (weight in CONF_WEIGHTS['agreement'], default 0.35):
+     Share of flooded pixels in zone where both SAR and Optical ML agree (agreement == 2):
+       agreement_ratio = count(flood & agreement == 2) / count(flood)
+     Where only single-method detection is available or methods disagree, agreement_ratio is 0.
+
+  2. Detection Margin (weight in CONF_WEIGHTS['margin'], default 0.20):
      Distance of SAR post-event backscatter and pre/post differencing from decision boundaries:
        margin_post = clip((POST_DB_MAX - post) / 6.0, 0.0, 1.0)
        margin_diff = clip((DIFF_DB_MAX - (post - pre)) / 6.0, 0.0, 1.0)
        margin_score = 0.5 * margin_post + 0.5 * margin_diff
      Pixels far below threshold (deep water, strong change) are more certain.
 
-  2. Terrain Stability (weight 0.3):
+  3. Terrain Stability (weight in CONF_WEIGHTS['terrain'], default 0.25):
      Radar distortion risk from slope layover/shadow:
        terrain_penalty = clip((slope - 5.0) / (STEEP_FLAG_DEG - 5.0), 0.0, 1.0)
        terrain_score = 1.0 - terrain_penalty
      Slopes above STEEP_FLAG_DEG (15°) receive maximum penalty.
 
-  3. Temporal Proximity (weight 0.2):
+  4. Temporal Proximity (weight in CONF_WEIGHTS['time'], default 0.20):
      Time gap between pre- and post-event acquisitions (nominal repeat = 12 days):
        time_penalty = clip((time_gap_days - 12.0) / (60.0 - 12.0) * 0.5, 0.0, 0.5)
        time_score = 1.0 - time_penalty
-     Longer temporal separation lowers confidence due to environmental drift.
 
-Combined Pixel Confidence Formula:
-  pixel_confidence = 0.5 * margin_score + 0.3 * terrain_score + 0.2 * time_score
-  (Outputs range strictly in [0.0, 1.0], saved to outputs/confidence_pixel.tif)
+  5. Method Availability Penalty (METHOD_PENALTY_MAX, default 0.15):
+     Penalty deducted if optical ML is unavailable for the zone (monsoon clouds / nodata):
+       method_penalty = (share_of_zone_with_ml_unavailable) * METHOD_PENALTY_MAX
 
-Zone-Level Interface Contract:
-  add_zone_confidence(zones: GeoDataFrame, outputs_dir: Path) -> GeoDataFrame
-  Adds columns: confidence ('High' | 'Medium' | 'Low'), confidence_score (0–1), reason (str),
-  conf_detail (dict: agreement_ratio, terrain_penalty, time_penalty, margin_score, method_penalty).
+Combined Confidence Formula:
+  base_score = (w_agree * agreement_ratio) + (w_margin * margin_score) + (w_terrain * terrain_score) + (w_time * time_score)
+  confidence_score = clip(base_score - method_penalty, 0.0, 1.0)
+
+Zone-Level Interface Contract (Signature MUST NOT change):
+  add_zone_confidence(zones: GeoDataFrame, outputs_dir: Optional[Path] = None) -> GeoDataFrame
+  Adds columns:
+    - confidence ('High' | 'Medium' | 'Low')
+    - confidence_score (float 0.0–1.0)
+    - reason (str)
+    - conf_detail (dict: agreement_ratio, terrain_penalty, time_penalty, margin_score, method_penalty)
 """
 from __future__ import annotations
 
@@ -66,6 +77,8 @@ def compute_pixel_confidence_array(
     slope: np.ndarray,
     valid: np.ndarray,
     time_gap_days: int = 12,
+    agreement: Optional[np.ndarray] = None,
+    method_mask: Optional[np.ndarray] = None,
     post_db_max: float = config.POST_DB_MAX,
     diff_db_max: float = config.DIFF_DB_MAX,
     steep_flag_deg: float = config.STEEP_FLAG_DEG,
@@ -94,12 +107,31 @@ def compute_pixel_confidence_array(
     # 3. Time Score
     time_penalty, time_score = compute_time_penalty(time_gap_days)
 
-    # Combined score
-    w_margin = config.CONF_WEIGHTS.get("agreement", 0.5)
-    w_terrain = config.CONF_WEIGHTS.get("terrain", 0.3)
-    w_time = config.CONF_WEIGHTS.get("time", 0.2)
+    # Weights
+    w_agree = config.CONF_WEIGHTS.get("agreement", 0.35)
+    w_margin = config.CONF_WEIGHTS.get("margin", 0.20)
+    w_terrain = config.CONF_WEIGHTS.get("terrain", 0.25)
+    w_time = config.CONF_WEIGHTS.get("time", 0.20)
 
-    combined = (w_margin * margin_score) + (w_terrain * terrain_score) + (w_time * time_score)
+    # 4. Multi-method agreement & method penalty if rasters available
+    if agreement is not None:
+        agree_score = np.where(agreement == 2, 1.0, np.where(agreement == 1, 0.4, 0.0)).astype(np.float32)
+    else:
+        agree_score = margin_score  # fallback to detection margin certainty
+
+    if method_mask is not None:
+        pen_max = getattr(config, "METHOD_PENALTY_MAX", 0.15)
+        method_pen_map = np.where(method_mask == 1, pen_max, 0.0).astype(np.float32)
+    else:
+        method_pen_map = np.zeros_like(margin_score)
+
+    combined = (
+        (w_agree * agree_score)
+        + (w_margin * margin_score)
+        + (w_terrain * terrain_score)
+        + (w_time * time_score)
+        - method_pen_map
+    )
     combined = np.clip(combined, 0.0, 1.0).astype(np.float32)
 
     conf_out = np.full(post.shape, -9999.0, dtype=np.float32)
@@ -146,6 +178,17 @@ def generate_confidence_raster(
     with rasterio.open(perm_path) as src:
         perm = src.read(1)
 
+    agreement_path = outputs_dir / "agreement.tif"
+    method_mask_path = outputs_dir / "method_mask.tif"
+    agreement = None
+    method_mask = None
+    if agreement_path.exists():
+        with rasterio.open(agreement_path) as src:
+            agreement = src.read(1)
+    if method_mask_path.exists():
+        with rasterio.open(method_mask_path) as src:
+            method_mask = src.read(1)
+
     meta_path = outputs_dir / "meta.json"
     meta = load_meta(meta_path)
     time_gap_days = int(meta.get("time_gap_days", 12))
@@ -163,6 +206,8 @@ def generate_confidence_raster(
         slope=slope,
         valid=valid,
         time_gap_days=time_gap_days,
+        agreement=agreement,
+        method_mask=method_mask,
         post_db_max=config.POST_DB_MAX,
         diff_db_max=config.DIFF_DB_MAX,
         steep_flag_deg=config.STEEP_FLAG_DEG,
@@ -179,17 +224,6 @@ def generate_confidence_raster(
     with rasterio.open(out_path, "w", **profile) as dst:
         dst.write(conf_arr, 1)
 
-    # Record fallbacks in meta.json
-    update_meta(
-        meta_path,
-        {
-            "fallbacks": {
-                "ml": "not run",
-                "calibration": "no overlapping reference",
-            },
-        },
-    )
-
     logger.info("Saved pixel confidence raster to %s", out_path)
     return out_path
 
@@ -200,31 +234,48 @@ def _generate_reason(
     time_penalty: float,
     margin_score: float,
     time_gap_days: int,
+    agreement_ratio: float = 1.0,
+    method_penalty: float = 0.0,
 ) -> str:
-    """Construct human-readable reason string highlighting the 1-2 factors costing the most."""
-    cost_terrain = 0.3 * terrain_penalty
-    cost_time = 0.2 * time_penalty
-    cost_margin = 0.5 * (1.0 - margin_score)
+    """Construct human-readable reason string highlighting factors costing the most."""
+    w_agree = config.CONF_WEIGHTS.get("agreement", 0.35)
+    w_margin = config.CONF_WEIGHTS.get("margin", 0.20)
+    w_terrain = config.CONF_WEIGHTS.get("terrain", 0.25)
+    w_time = config.CONF_WEIGHTS.get("time", 0.20)
+
+    cost_agree = w_agree * (1.0 - agreement_ratio)
+    cost_terrain = w_terrain * terrain_penalty
+    cost_margin = w_margin * (1.0 - margin_score)
+    cost_time = w_time * time_penalty
+    cost_method = method_penalty
 
     costs = [
         ("terrain", cost_terrain),
-        ("time", cost_time),
+        ("agreement", cost_agree),
+        ("method", cost_method),
         ("margin", cost_margin),
+        ("time", cost_time),
     ]
     costs.sort(key=lambda x: x[1], reverse=True)
 
     reasons: list[str] = []
     for factor, cost in costs[:2]:
-        if cost > 0.05:
-            if factor == "terrain" and terrain_penalty > 0.15:
+        if cost > 0.04:
+            if factor == "agreement" and agreement_ratio < 0.5:
+                reasons.append("single-method detection (methods disagree)")
+            elif factor == "method" and method_penalty > 0.04:
+                reasons.append("optical ML unavailable for zone")
+            elif factor == "terrain" and terrain_penalty > 0.15:
                 pct = int(round(terrain_penalty * 100))
                 reasons.append(f"{pct}% of flooded area on steep terrain (>15°)")
             elif factor == "margin" and margin_score < 0.65:
-                reasons.append("most flood pixels are close to SAR detection threshold")
+                reasons.append("flood pixels close to SAR detection threshold")
             elif factor == "time" and time_penalty > 0.15:
                 reasons.append(f"{time_gap_days}-day temporal gap between passes")
 
     if not reasons:
+        if agreement_ratio >= 0.8 and method_penalty == 0.0:
+            return f"{label}: Both SAR and optical ML confirm flood on flat terrain with high margin"
         return f"{label}: Strong radar backscatter drop on flat terrain with high margin"
 
     joined = "; ".join(reasons)
@@ -296,6 +347,25 @@ def add_zone_confidence(
     with rasterio.open(slope_path) as src:
         slope_arr = src.read(1)
 
+    agreement_path = outputs_dir / "agreement.tif"
+    method_mask_path = outputs_dir / "method_mask.tif"
+    ml_path = outputs_dir / "flood_ml.tif"
+
+    agreement_arr: Optional[np.ndarray] = None
+    method_mask_arr: Optional[np.ndarray] = None
+
+    if agreement_path.exists():
+        with rasterio.open(agreement_path) as src:
+            agreement_arr = src.read(1)
+    if method_mask_path.exists():
+        with rasterio.open(method_mask_path) as src:
+            method_mask_arr = src.read(1)
+    elif ml_path.exists() and agreement_arr is None:
+        with rasterio.open(ml_path) as src_ml:
+            ml_arr = src_ml.read(1)
+            from backend.fusion.fuse import build_agreement_raster
+            agreement_arr, method_mask_arr = build_agreement_raster(flood_arr, ml_arr)
+
     # Margin and terrain calculations
     margin_post = np.clip((config.POST_DB_MAX - post_arr) / 6.0, 0.0, 1.0)
     diff = post_arr - pre_arr
@@ -331,7 +401,6 @@ def add_zone_confidence(
 
         minx, miny, maxx, maxy = geom.bounds
         win = rasterio.windows.from_bounds(minx, miny, maxx, maxy, transform=src_transform)
-        # Snap window to integer coords
         win = win.round_offsets().round_lengths()
 
         col_off = max(0, int(win.col_off))
@@ -376,12 +445,47 @@ def add_zone_confidence(
         terrain_penalty_frac = float(sub_steep[flood_in_zone].mean())
         terrain_score = 1.0 - terrain_penalty_frac
 
-        w_margin = config.CONF_WEIGHTS.get("agreement", 0.5)
-        w_terrain = config.CONF_WEIGHTS.get("terrain", 0.3)
-        w_time = config.CONF_WEIGHTS.get("time", 0.2)
+        # 1. Multi-method agreement ratio
+        if agreement_arr is not None:
+            sub_agree = agreement_arr[row_off:row_off + h, col_off:col_off + w]
+            both_agree_px = int(((sub_agree == 2) & flood_in_zone).sum())
+            agreement_ratio = float(both_agree_px / n_flood)
+        else:
+            agreement_ratio = 1.0
 
-        score = (w_margin * mean_margin) + (w_terrain * terrain_score) + (w_time * time_score)
-        score = float(np.clip(score, 0.0, 1.0))
+        # 2. Method availability penalty
+        if method_mask_arr is not None:
+            sub_mm = method_mask_arr[row_off:row_off + h, col_off:col_off + w]
+            unavail_px = int((sub_geom_mask & (sub_mm == 1)).sum())
+            zone_px = int(sub_geom_mask.sum())
+            unavail_frac = float(unavail_px / zone_px) if zone_px > 0 else 0.0
+            pen_max = getattr(config, "METHOD_PENALTY_MAX", 0.15)
+            method_pen = float(unavail_frac * pen_max)
+        else:
+            method_pen = 0.0
+
+        w_agree = config.CONF_WEIGHTS.get("agreement", 0.35)
+        w_margin = config.CONF_WEIGHTS.get("margin", 0.20)
+        w_terrain = config.CONF_WEIGHTS.get("terrain", 0.25)
+        w_time = config.CONF_WEIGHTS.get("time", 0.20)
+
+        if agreement_arr is not None:
+            base_score = (
+                (w_agree * agreement_ratio)
+                + (w_margin * mean_margin)
+                + (w_terrain * terrain_score)
+                + (w_time * time_score)
+            )
+        else:
+            # Single-method fallback when multi-method agreement raster is absent
+            base_score = (
+                ((w_agree + w_margin) * mean_margin)
+                + (w_terrain * terrain_score)
+                + (w_time * time_score)
+            )
+
+        final_score = base_score - method_pen
+        score = float(np.clip(final_score, 0.0, 1.0))
 
         if score >= config.CONF_HIGH:
             label = "High"
@@ -396,14 +500,16 @@ def add_zone_confidence(
             time_penalty=time_pen,
             margin_score=mean_margin,
             time_gap_days=time_gap_days,
+            agreement_ratio=agreement_ratio,
+            method_penalty=method_pen,
         )
 
         detail = {
-            "agreement_ratio": 1.0,
+            "agreement_ratio": round(agreement_ratio, 3),
             "terrain_penalty": round(terrain_penalty_frac, 3),
             "time_penalty": round(time_pen, 3),
             "margin_score": round(mean_margin, 3),
-            "method_penalty": 0.0,
+            "method_penalty": round(method_pen, 3),
         }
 
         conf_labels.append(label)

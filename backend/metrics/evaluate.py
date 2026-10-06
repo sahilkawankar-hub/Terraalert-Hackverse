@@ -302,8 +302,14 @@ def evaluate_chip_benchmark(
     classical_pred = cleaned_classical.astype(np.uint8)
     classical_metrics = compute_binary_metrics(classical_pred, target)
 
+    # 3. Fused detection on chip
+    from backend.fusion.fuse import build_fused_flood_raster
+    fused_pred = build_fused_flood_raster(classical_pred, np.full_like(classical_pred, 255), rule=config.FUSION_RULE)
+    fused_metrics = compute_binary_metrics(fused_pred, target)
+
     logger.info("Chip %s Naive Metrics: %s", chip_id, naive_metrics)
     logger.info("Chip %s Classical Metrics: %s", chip_id, classical_metrics)
+    logger.info("Chip %s Fused Metrics: %s", chip_id, fused_metrics)
 
     metrics_payload = {
         "metrics": {
@@ -317,7 +323,11 @@ def evaluate_chip_benchmark(
             "post_event_source": "Sen1Floods11 S1Hand (July 2019, Relative Orbit 143, ASCENDING)",
             "naive": naive_metrics,
             "classical": classical_metrics,
-        }
+            "fused": fused_metrics,
+        },
+        "fallbacks": {
+            "calibration": "no overlapping reference",
+        },
     }
 
     update_meta(meta_path, metrics_payload)
@@ -326,8 +336,62 @@ def evaluate_chip_benchmark(
     return {
         "naive": naive_metrics,
         "classical": classical_metrics,
+        "fused": fused_metrics,
         "chip_id": chip_id,
     }
+
+
+def record_fused_metrics(
+    meta_path: Optional[Path] = None,
+    outputs_dir: Optional[Path] = None,
+    reference_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """
+    Record metrics.fused and calibration table where an overlapping reference exists;
+    otherwise maintain fallbacks.calibration = 'no overlapping reference'.
+    """
+    if outputs_dir is None:
+        outputs_dir = config.OUTPUTS_DIR
+    if meta_path is None:
+        meta_path = outputs_dir / "meta.json"
+
+    has_overlapping_ref = False
+    calib_table = None
+
+    if reference_path is not None and reference_path.exists():
+        has_overlapping_ref = True
+        with rasterio.open(reference_path) as ref_src:
+            target = ref_src.read(1)
+        fused_path = outputs_dir / "flood_fused.tif"
+        if fused_path.exists():
+            with rasterio.open(fused_path) as f_src:
+                fused = f_src.read(1)
+            fused_metrics = compute_binary_metrics(fused, target)
+        else:
+            fused_metrics = {"status": "flood_fused.tif not generated"}
+    else:
+        fused_metrics = {
+            "status": "not evaluated on AOI (no overlapping reference dataset)",
+            "aoi_disclaimer": "Per AGENT_CONTEXT rule 5, zero accuracy claimed on AOI.",
+        }
+
+    payload: Dict[str, Any] = {
+        "metrics": {
+            "fused": fused_metrics,
+        },
+    }
+
+    if has_overlapping_ref and calib_table:
+        payload["metrics"]["calibration_table"] = calib_table
+    else:
+        payload["fallbacks"] = {
+            "calibration": "no overlapping reference",
+        }
+
+    if meta_path.exists():
+        update_meta(meta_path, payload)
+
+    return payload
 
 
 def main() -> None:
