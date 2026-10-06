@@ -534,9 +534,13 @@ var map = L.map('map', {
   attributionControl: false
 });
 
-// Dark satellite-style tiles
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 19, subdomains: 'abcd'
+// Dark satellite-style tiles (ESRI Dark Canvas, watermark-free)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 16
+}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 16,
+  opacity: 0.75
 }).addTo(map);
 
 // AOI rectangle

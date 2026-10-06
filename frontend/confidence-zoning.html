@@ -726,6 +726,7 @@
     .pb-title { font-size: 12px; font-weight: 700; color: #fff; }
     .pb-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
     .pb-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 9px; font-family: var(--mono); }
+    .leaflet-control-attribution { display: none !important; }
   </style>
 </head>
 <body>
@@ -1026,9 +1027,12 @@ var map = L.map('confidence-map', {
   attributionControl: false
 });
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 19,
-  subdomains: 'abcd'
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 16
+}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 16,
+  opacity: 0.75
 }).addTo(map);
 
 // Update coordinates on move

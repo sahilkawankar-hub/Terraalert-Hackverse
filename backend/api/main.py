@@ -268,6 +268,22 @@ def get_report() -> Any:
     return {"message": "Report exists"}
 
 
+# ── No-cache middleware for HTML (prevent stale browser cache) ─────────────────
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import Response as StarletteResponse
+
+class NoCacheHTMLMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        response: StarletteResponse = await call_next(request)
+        if request.url.path.endswith(".html") or request.url.path == "/":
+            response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
+            response.headers["Expires"] = "0"
+        return response
+
+app.add_middleware(NoCacheHTMLMiddleware)
+
 # ── Mount Frontend Static Files at "/" ────────────────────────────────────────
 FRONTEND_DIR = config.ROOT_DIR / "frontend"
 if FRONTEND_DIR.exists():

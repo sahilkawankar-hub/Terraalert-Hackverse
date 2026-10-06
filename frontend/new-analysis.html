@@ -3,615 +3,1825 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>New Analysis - TerraAlert GEOINT Command</title>
-  <meta name="description" content="Create a new disaster analysis with multi-temporal satellite passes and automated change-detection pipelines."/>
+  <title>Create Disaster Analysis — TerraAlert GEOINT Command</title>
+  <meta name="description" content="Configure multi-temporal satellite data passes, spatial bounds (AOI), and automated change-detection pipelines."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg-deep:#060a12; --bg-base:#0a0f1e; --bg-surface:#0d1525;
-      --bg-card:#111827; --bg-card-alt:#0f1720; --bg-hover:#1a2540; --bg-input:#0c1422;
-      --border:rgba(56,165,248,0.12); --border-bright:rgba(56,165,248,0.28);
-      --border-input:rgba(56,165,248,0.2); --accent:#38a5f8; --accent-dim:rgba(56,165,248,0.08);
-      --green:#22c55e; --green-dim:rgba(34,197,94,0.12);
-      --amber:#f59e0b; --amber-dim:rgba(245,158,11,0.12);
-      --red:#ef4444; --red-dim:rgba(239,68,68,0.12);
-      --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.12);
-      --text:#e2e8f0; --text-muted:#64748b; --text-dim:#94a3b8;
-      --sidebar-w:192px; --topbar-h:44px;
-      --font:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',monospace;
+      --bg-deep: #060a12;
+      --bg-base: #0a0f1e;
+      --bg-surface: #0d1525;
+      --bg-card: #111827;
+      --bg-card-alt: #0f1720;
+      --bg-hover: #1a2540;
+      --border: rgba(56, 165, 248, 0.12);
+      --border-bright: rgba(56, 165, 248, 0.28);
+      --accent: #38a5f8;
+      --accent-dim: rgba(56, 165, 248, 0.08);
+      --green: #22c55e;
+      --green-dim: rgba(34, 197, 94, 0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.12);
+      --red: #ef4444;
+      --red-dim: rgba(239, 68, 68, 0.12);
+      --purple: #a78bfa;
+      --purple-dim: rgba(167, 139, 250, 0.12);
+      --cyan: #06b6d4;
+      --cyan-dim: rgba(6, 182, 212, 0.12);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --sidebar-w: 192px;
+      --topbar-h: 44px;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
     }
-    html,body{height:100%;overflow:hidden;}
-    body{font-family:var(--font);background:var(--bg-deep);color:var(--text);font-size:13px;line-height:1.5;display:flex;flex-direction:column;}
-    ::-webkit-scrollbar{width:4px;height:4px;}
-    ::-webkit-scrollbar-track{background:transparent;}
-    ::-webkit-scrollbar-thumb{background:var(--border-bright);border-radius:4px;}
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-deep);
+      color: var(--text);
+      font-size: 12.5px;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+    }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
 
-    /* TOPBAR */
-    #topbar{height:var(--topbar-h);background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;flex-shrink:0;z-index:500;}
-    .topbar-brand{display:flex;align-items:center;gap:10px;width:var(--sidebar-w);flex-shrink:0;}
-    .brand-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#1e40af,#38a5f8);display:flex;align-items:center;justify-content:center;font-size:14px;}
-    .brand-text{display:flex;flex-direction:column;line-height:1.1;}
-    .brand-name{font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;}
-    .brand-sub{font-size:9px;font-weight:500;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
-    .brand-version{font-size:9px;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);}
-    .topbar-center{flex:1;display:flex;align-items:center;gap:14px;padding:0 16px;overflow:hidden;}
-    .event-status{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);white-space:nowrap;}
-    .event-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber);animation:pulse-amb 2s ease-in-out infinite;flex-shrink:0;}
-    @keyframes pulse-amb{0%,100%{opacity:1}50%{opacity:.4}}
-    .top-chip{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 9px;border-radius:3px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-dim);letter-spacing:.5px;text-transform:uppercase;cursor:default;white-space:nowrap;}
-    .top-chip.ready{border-color:rgba(34,197,94,.35);color:var(--green);}
-    .top-chip.syncing{border-color:rgba(56,165,248,.35);color:var(--accent);}
-    .topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
-    .icon-btn{width:30px;height:30px;border-radius:5px;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:13px;position:relative;transition:all .2s;}
-    .icon-btn:hover{background:var(--bg-hover);border-color:var(--border-bright);color:var(--text);}
-    .notif-badge{position:absolute;top:-4px;right:-4px;width:15px;height:15px;background:var(--amber);border-radius:50%;font-size:8px;font-weight:700;color:#000;display:flex;align-items:center;justify-content:center;}
-    .user-pill{display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:4px 10px;cursor:pointer;transition:border-color .2s;}
-    .user-avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#38a5f8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
-    .user-info{display:flex;flex-direction:column;line-height:1.1;}
-    .user-name{font-size:11px;font-weight:600;color:var(--text);}
-    .user-role{font-size:9px;color:var(--text-muted);letter-spacing:.5px;}
+    /* ── TOPBAR ─────────────────────────────────────── */
+    #topbar {
+      height: var(--topbar-h);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 500;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #1e40af, #38a5f8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(56,165,248,0.3);
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .brand-name { font-size: 12px; font-weight: 700; color: var(--text); letter-spacing: 0.5px; }
+    .brand-sub { font-size: 9px; font-weight: 500; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+    .brand-version {
+      font-size: 9px;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: var(--mono);
+    }
+    .topbar-center {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      overflow: hidden;
+    }
+    .event-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .event-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 6px var(--amber);
+      animation: pulse-amb 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse-amb { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .top-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 3px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .top-chip.ready { border-color: rgba(34, 197, 94, 0.35); color: var(--green); }
+    .top-chip.synced { border-color: rgba(56, 165, 248, 0.35); color: var(--accent); }
+    .topbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 13px;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { background: var(--bg-hover); border-color: var(--border-bright); color: var(--text); }
+    .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 15px;
+      height: 15px;
+      background: var(--amber);
+      border-radius: 50%;
+      font-size: 8px;
+      font-weight: 700;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+    .user-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #38a5f8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .user-info { display: flex; flex-direction: column; line-height: 1.1; }
+    .user-name { font-size: 11px; font-weight: 600; color: var(--text); }
+    .user-role { font-size: 9px; color: var(--text-muted); letter-spacing: 0.5px; }
 
-    /* LAYOUT */
-    #layout{flex:1;display:flex;overflow:hidden;}
+    /* ── LAYOUT ─────────────────────────────────────── */
+    #layout { flex: 1; display: flex; overflow: hidden; }
 
-    /* SIDEBAR */
-    #sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:8px 0;}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:var(--text-muted);font-size:12px;font-weight:500;letter-spacing:.3px;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
-    .nav-item:hover{color:var(--text);background:var(--accent-dim);}
-    .nav-item.active{color:var(--accent);background:var(--accent-dim);border-left-color:var(--accent);}
-    .nav-icon{width:16px;text-align:center;font-size:13px;flex-shrink:0;}
-    .nav-badge{margin-left:auto;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;}
-    .nav-dot{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);}
-    .nav-section{padding:12px 14px 4px;font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:1.2px;text-transform:uppercase;}
+    /* ── SIDEBAR ────────────────────────────────────── */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      transition: all 0.15s;
+      border-left: 2px solid transparent;
+      text-decoration: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--accent-dim); }
+    .nav-item.active { color: var(--accent); background: var(--accent-dim); border-left-color: var(--accent); font-weight: 600; }
+    .nav-icon { width: 16px; text-align: center; font-size: 13px; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--red);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    .nav-footer-status {
+      margin-top: auto;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nfs-status { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; font-family: var(--mono); }
+    .nfs-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .nfs-sub { font-size: 9px; color: var(--text-muted); font-family: var(--mono); }
 
-    /* MAIN */
-    #main{flex:1;overflow-y:auto;display:flex;flex-direction:column;background:var(--bg-base);min-height:0;}
-
-    /* PAGE HEADER */
-    #page-header{padding:14px 18px;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--bg-surface);}
-    .breadcrumb{display:flex;align-items:center;gap:6px;font-size:9.5px;color:var(--text-muted);margin-bottom:8px;}
-    .breadcrumb a{color:var(--text-muted);text-decoration:none;}
-    .breadcrumb a:hover{color:var(--accent);}
-    .bc-sep{opacity:.5;}
-    .bc-current{color:var(--accent);font-weight:600;font-family:var(--mono);}
-    .page-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .page-title-left{display:flex;align-items:center;gap:12px;}
-    .page-title-left h1{font-size:20px;font-weight:700;letter-spacing:-.3px;color:var(--text);}
-    .sar-badge{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.4);border-radius:3px;padding:2px 8px;}
-    .page-title-right{display:flex;align-items:center;gap:8px;}
-    .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:5px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:var(--font);letter-spacing:.2px;}
-    .btn-ghost{background:var(--bg-card);border-color:var(--border);color:var(--text-dim);}
-    .btn-ghost:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-hover);}
-    .btn-accent{background:rgba(56,165,248,.12);border-color:var(--border-bright);color:var(--accent);}
-    .btn-accent:hover{background:rgba(56,165,248,.2);}
-    .btn-run{background:linear-gradient(135deg,#1d4ed8,#7c3aed);border-color:rgba(124,58,237,.4);color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;padding:10px 20px;animation:glow-run 3s ease-in-out infinite;}
-    .btn-run:hover{background:linear-gradient(135deg,#1e40af,#6d28d9);}
-    @keyframes glow-run{0%,100%{box-shadow:0 2px 12px rgba(124,58,237,.35)}50%{box-shadow:0 4px 24px rgba(124,58,237,.65)}}
-    .btn-sim{background:var(--bg-card);border-color:var(--border-bright);color:var(--accent);font-size:11px;font-weight:700;padding:10px 14px;}
-    .btn-sim:hover{background:var(--bg-hover);}
-
-    /* CONTENT */
-    #content{flex:1;display:grid;grid-template-columns:1fr 310px;min-height:0;}
-    #left-panel{overflow-y:auto;padding:16px 14px 60px 18px;display:flex;flex-direction:column;gap:14px;border-right:1px solid var(--border);min-height:0;}
-    #right-panel{overflow-y:auto;padding:16px 18px 60px 14px;display:flex;flex-direction:column;gap:14px;min-height:0;}
-    @media (max-width: 960px) {
-      #content{display:flex;flex-direction:column;}
-      #left-panel, #right-panel{overflow:visible;padding-bottom:30px;}
+    /* ── MAIN CONTENT ─────────────────────────────────── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-base);
     }
 
-    /* STEP CARDS */
-    .step-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-    .step-card.active-step{border-color:var(--border-bright);box-shadow:0 0 0 1px rgba(56,165,248,.08);}
-    .step-header{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);background:var(--bg-card-alt);}
-    .step-num-badge{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:var(--accent-dim);border:1px solid var(--border-bright);font-size:10px;font-weight:700;font-family:var(--mono);color:var(--accent);flex-shrink:0;}
-    .step-title{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text);flex:1;}
-    .step-pill{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:2px 7px;border-radius:3px;}
-    .pill-geo{background:rgba(56,165,248,.12);color:var(--accent);border:1px solid rgba(56,165,248,.3);}
-    .pill-await{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);}
-    .pill-pending{background:var(--bg-card);border:1px solid var(--border);color:var(--text-muted);}
-    .step-body{padding:14px;display:flex;flex-direction:column;gap:12px;}
+    /* Sub-row Header */
+    #page-sub-row {
+      padding: 12px 20px 10px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .sub-row-left {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .sub-crumb {
+      font-size: 9.5px;
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .sub-crumb a { color: var(--text-dim); text-decoration: none; }
+    .sub-crumb a:hover { color: var(--accent); }
+    .sub-crumb span.active-crumb { color: var(--accent); }
+    .sub-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sub-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.2px;
+    }
+    .pipeline-badge {
+      font-size: 9.5px;
+      font-family: var(--mono);
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: var(--green);
+      letter-spacing: 0.5px;
+    }
+    .sub-desc {
+      font-size: 11.5px;
+      color: var(--text-dim);
+    }
+    .sub-row-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      font-family: var(--font);
+      text-decoration: none;
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      border-color: var(--border);
+      color: var(--text-dim);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #38a5f8);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(56, 165, 248, 0.3);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #0ea5e9);
+      box-shadow: 0 0 16px rgba(56, 165, 248, 0.5);
+    }
+    .btn-preset {
+      padding: 5px 9px;
+      font-size: 10px;
+      background: rgba(56, 165, 248, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--mono);
+    }
+    .btn-preset:hover {
+      background: rgba(56, 165, 248, 0.2);
+      border-color: var(--accent);
+      color: #fff;
+    }
 
-    /* FORM */
-    .form-group{display:flex;flex-direction:column;gap:5px;}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    .form-label{font-size:9.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:6px;}
-    .req-mark{color:var(--red);font-size:9px;}
-    .form-input{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;padding:8px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);transition:all .2s;outline:none;}
-    .form-input::placeholder{color:var(--text-muted);font-style:italic;}
-    .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,165,248,.1);}
-    .form-select{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;padding:8px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:calc(100% - 10px) center;transition:all .2s;}
-    .form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,165,248,.1);}
-    .form-textarea{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;padding:8px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);resize:vertical;min-height:72px;outline:none;transition:all .2s;line-height:1.5;}
-    .form-textarea::placeholder{color:var(--text-muted);font-style:italic;}
-    .form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,165,248,.1);}
+    /* ── WIZARD WORKSPACE ────────────────────────────── */
+    #wizard-container {
+      padding: 16px 20px 32px;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 16px;
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    @media (max-width: 1280px) {
+      #wizard-container { grid-template-columns: 1fr; }
+    }
 
-    /* DISASTER BUTTONS */
-    .disaster-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-    .disaster-btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 4px;border-radius:5px;border:1px solid var(--border);background:var(--bg-input);cursor:pointer;font-size:10px;font-weight:600;color:var(--text-muted);transition:all .15s;font-family:var(--font);}
-    .disaster-btn:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-hover);}
-    .sel-flood{border-color:rgba(56,165,248,.5)!important;background:rgba(56,165,248,.1)!important;color:var(--accent)!important;}
-    .sel-cyclone{border-color:rgba(167,139,250,.5)!important;background:rgba(167,139,250,.1)!important;color:var(--purple)!important;}
-    .sel-landslide{border-color:rgba(245,158,11,.5)!important;background:rgba(245,158,11,.1)!important;color:var(--amber)!important;}
-    .sel-wildfire{border-color:rgba(239,68,68,.5)!important;background:rgba(239,68,68,.1)!important;color:var(--red)!important;}
+    /* Column Containers */
+    .wizard-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-    /* AOI */
-    .no-boundary-pill{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;color:var(--green);background:var(--green-dim);border:1px solid rgba(34,197,94,.35);border-radius:3px;padding:3px 8px;}
-    .nb-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
-    .search-box{display:flex;align-items:center;background:var(--bg-input);border:1px solid var(--border-input);border-radius:5px;overflow:hidden;}
-    .search-box input{flex:1;background:transparent;border:none;padding:7px 10px;font-size:11.5px;color:var(--text);font-family:var(--font);outline:none;}
-    .search-box input::placeholder{color:var(--text-muted);font-style:italic;}
-    .search-icon{padding:0 10px;color:var(--text-muted);font-size:12px;flex-shrink:0;}
-    .map-tools{display:flex;align-items:center;gap:6px;}
-    .map-tool-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg-card-alt);color:var(--text-muted);transition:all .15s;font-family:var(--font);}
-    .map-tool-btn:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-hover);}
-    .map-tool-btn.draw{border-color:rgba(56,165,248,.4);color:var(--accent);background:rgba(56,165,248,.08);}
-    #map{width:100%;height:220px;border-radius:6px;border:1px solid var(--border);overflow:hidden;background:#0a1628;}
-    .aoi-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-    .aoi-stat{background:var(--bg-card-alt);border:1px solid var(--border);border-radius:5px;padding:8px 10px;}
-    .aoi-stat-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);margin-bottom:4px;}
-    .aoi-stat-val{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text-muted);}
-    .aoi-stat-val.has-val{color:var(--accent);}
+    /* Cards */
+    .w-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+    .w-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .wch-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--mono);
+    }
+    .wch-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .wch-tag {
+      font-size: 9.5px;
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
 
-    /* TEMPORAL */
-    .temporal-pairing{display:flex;align-items:center;justify-content:space-between;background:var(--bg-card-alt);border:1px solid var(--border);border-radius:5px;padding:8px 12px;}
-    .tp-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:var(--accent);}
-    .tp-status{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--amber);background:var(--amber-dim);border:1px solid rgba(245,158,11,.3);border-radius:3px;padding:2px 7px;}
-    .temporal-pass{background:var(--bg-card-alt);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
-    .tp-header{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);}
-    .tp-badge{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--accent);background:var(--accent-dim);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;}
-    .tp-badge.post{color:var(--purple);background:var(--purple-dim);border-color:rgba(167,139,250,.3);}
-    .tp-aw{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);}
-    .tp-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
-    .tp-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-    .tp-field{display:flex;flex-direction:column;gap:3px;}
-    .tp-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-muted);}
-    .tp-val{font-size:11px;color:var(--text-dim);}
-    .tp-val.aw{color:var(--text-muted);font-style:italic;}
-    .tp-date{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:4px;padding:5px 8px;font-size:11px;color:var(--text);font-family:var(--font);outline:none;}
-    .tp-date:focus{border-color:var(--accent);}
-    .tp-sat{width:100%;background:var(--bg-input);border:1px solid var(--border-input);border-radius:4px;padding:5px 8px;font-size:11px;color:var(--text);font-family:var(--font);outline:none;appearance:none;}
-    .tp-divider{display:flex;align-items:center;gap:8px;padding:4px 0;}
-    .tp-divider-line{flex:1;height:1px;background:var(--border);}
-    .tp-divider-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);background:var(--accent-dim);border:1px solid var(--border-bright);border-radius:3px;padding:2px 7px;cursor:pointer;}
-    .tp-note{display:flex;align-items:flex-start;gap:7px;padding:8px 10px;background:rgba(56,165,248,.05);border:1px solid rgba(56,165,248,.12);border-radius:5px;}
-    .tp-note-icon{color:var(--accent);font-size:12px;flex-shrink:0;margin-top:1px;}
-    .tp-note-text{font-size:10px;color:var(--text-muted);line-height:1.5;}
+    /* Form Elements */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .form-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-label .req {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 9px;
+    }
+    .form-input, .form-select, .form-textarea {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 11px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(56, 165, 248, 0.15);
+    }
+    .form-input::placeholder, .form-textarea::placeholder {
+      color: #475569;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 640px) {
+      .form-grid-2 { grid-template-columns: 1fr; }
+    }
 
-    /* REVIEW */
-    .review-body{padding:12px 14px;display:flex;flex-direction:column;}
-    .review-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);}
-    .review-row:last-child{border-bottom:none;}
-    .review-key{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--text-muted);}
-    .review-val{font-size:11px;font-family:var(--mono);color:var(--text-muted);}
-    .review-val.set{color:var(--text);font-weight:600;}
-    .auto-notify{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:5px;margin:0 14px 12px;}
-    .an-cb{width:14px;height:14px;border-radius:3px;border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;cursor:pointer;}
-    .an-check{color:var(--red);font-size:10px;font-weight:700;}
-    .an-text{display:flex;flex-direction:column;gap:2px;}
-    .an-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--red);}
-    .an-desc{font-size:9.5px;color:var(--text-muted);line-height:1.4;}
-    .review-actions{display:flex;gap:8px;padding:0 14px 14px;}
+    /* Disaster Classification Selector */
+    .disaster-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    @media (max-width: 640px) {
+      .disaster-selector-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .disaster-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .disaster-pill:hover {
+      border-color: var(--border-bright);
+      background: var(--bg-hover);
+    }
+    .disaster-pill.active {
+      border-color: var(--accent);
+      background: rgba(56, 165, 248, 0.14);
+      box-shadow: 0 0 10px rgba(56, 165, 248, 0.2);
+    }
+    .disaster-pill .dp-icon {
+      font-size: 18px;
+    }
+    .disaster-pill .dp-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-    /* LEAFLET */
-    .leaflet-container{background:#0a1628!important;}
-    .leaflet-tile-pane{filter:brightness(.8) saturate(.6);}
-    .leaflet-control-zoom a{background:var(--bg-card)!important;border-color:var(--border)!important;color:var(--text-dim)!important;}
-    .leaflet-control-attribution{display:none!important;}
-    .leaflet-bar{border:1px solid var(--border)!important;border-radius:5px!important;overflow:hidden;}
+    /* AOI Map Controls & Canvas */
+    .map-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .map-search-box {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 180px;
+    }
+    .map-search-box input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 11px;
+      width: 100%;
+      outline: none;
+    }
+    .map-toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .map-btn {
+      padding: 5px 9px;
+      font-size: 10.5px;
+      font-weight: 600;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .map-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text);
+    }
+    .map-btn.active-tool {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Map Box */
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #040810;
+    }
+    #aoi-map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    .map-overlay-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 400;
+      background: rgba(13, 21, 37, 0.88);
+      border: 1px solid var(--border-bright);
+      backdrop-filter: blur(6px);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-family: var(--mono);
+      font-size: 9.5px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .aoi-presets-bar {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 400;
+      display: flex;
+      gap: 6px;
+      background: rgba(13, 21, 37, 0.88);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 6px;
+    }
+
+    /* AOI Telemetry Stats Grid */
+    .telemetry-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    @media (max-width: 640px) {
+      .telemetry-strip { grid-template-columns: 1fr 1fr; }
+    }
+    .telem-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .telem-lbl {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .telem-val {
+      font-size: 13px;
+      font-family: var(--mono);
+      font-weight: 700;
+      color: var(--text);
+    }
+    .telem-val.accent { color: var(--accent); }
+    .telem-val.green { color: var(--green); }
+    .telem-val.amber { color: var(--amber); }
+
+    /* ── STEP 03: SATELLITE PAIRING ──────────────────── */
+    .pairing-card-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .temporal-pass-box {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .temporal-pass-box:hover {
+      border-color: var(--border-bright);
+    }
+    .tpb-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tpb-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tpb-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .tpb-dot.blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .tpb-dot.red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .tpb-tag {
+      font-size: 9px;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+    }
+    .pass-props-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+      font-size: 11px;
+    }
+    .pp-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .pp-lbl {
+      font-size: 8.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pp-val {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text);
+    }
+    .temporal-separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: -2px 0;
+    }
+    .delta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: 12px;
+      padding: 3px 10px;
+      font-size: 9.5px;
+      font-family: var(--mono);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── STEP 04: PIPELINE REVIEW & LAUNCH ───────────── */
+    .review-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .review-table tr {
+      border-bottom: 1px solid var(--border);
+    }
+    .review-table tr:last-child {
+      border-bottom: none;
+    }
+    .review-table td {
+      padding: 7px 12px;
+    }
+    .review-table td.rt-label {
+      color: var(--text-muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      width: 38%;
+    }
+    .review-table td.rt-val {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text);
+      text-align: right;
+    }
+
+    /* Algorithm Picker */
+    .algo-picker-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .algo-option {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .algo-option:hover {
+      border-color: var(--border-bright);
+      background: var(--bg-hover);
+    }
+    .algo-option.selected {
+      border-color: var(--accent);
+      background: rgba(56, 165, 248, 0.1);
+    }
+    .ao-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ao-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .ao-desc {
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+
+    /* Auto-Notify Checkbox Card */
+    .notify-check-card {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+    }
+    .notify-check-card input[type="checkbox"] {
+      margin-top: 2px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .ncc-body {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ncc-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .ncc-desc {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Launch Actions */
+    .launch-actions-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .btn-run-big {
+      flex: 1;
+      height: 42px;
+      background: linear-gradient(135deg, #0284c7, #38a5f8);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 16px rgba(56, 165, 248, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-run-big:hover {
+      background: linear-gradient(135deg, #0369a1, #0ea5e9);
+      box-shadow: 0 0 22px rgba(56, 165, 248, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-run-big:active {
+      transform: translateY(0);
+    }
+    .btn-sim-quick {
+      height: 42px;
+      padding: 0 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-family: var(--font);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-sim-quick:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-bright);
+      color: var(--text);
+    }
+
+    /* Live Pipeline Dispatch Console */
+    #pipeline-progress-box {
+      display: none;
+      background: #040810;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 12px;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 0 14px rgba(56, 165, 248, 0.2);
+    }
+    .ppb-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ppb-bar-container {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .ppb-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38a5f8, #22c55e);
+      transition: width 0.3s ease;
+    }
+    .ppb-log {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ppb-log-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--amber);
+      animation: pulse-amb 1.5s infinite;
+    }
+
+    /* Leaflet Dark Custom Styles */
+    .leaflet-container {
+      background: #040810 !important;
+    }
+    .leaflet-popup-content-wrapper {
+      background: rgba(13, 21, 37, 0.95) !important;
+      border: 1px solid var(--border-bright) !important;
+      color: var(--text) !important;
+      border-radius: 6px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+      font-family: var(--font) !important;
+    }
+    .leaflet-popup-tip { background: #0d1525 !important; }
+    .leaflet-control-attribution { display: none !important; }
   </style>
 </head>
 <body>
 
 <!-- TOP BAR -->
 <header id="topbar">
-  <div class="topbar-brand">
+  <a href="index.html" class="topbar-brand">
     <div class="brand-icon">&#128752;</div>
     <div class="brand-text">
       <span class="brand-name">TerraAlert</span>
       <span class="brand-sub">GEOINT Command</span>
     </div>
     <span class="brand-version">v1.0</span>
-  </div>
+  </a>
   <div class="topbar-center">
     <div class="event-status">
       <span class="event-dot"></span>
-      CURRENT ACTIVE EVENT:&nbsp;<strong style="color:var(--amber)">ASSAM FLOODS &middot; JUN 2022</strong>
+      CURRENT EVENT:&nbsp;<strong style="color:var(--amber)" id="topbar-event-title">ASSAM FLOODS &middot; JUN 2022</strong>
     </div>
-    <div class="top-chip syncing">S-1A / S-1B STANDBY</div>
-    <div class="top-chip ready">CHANGE DETECTION: READY</div>
+    <div class="top-chip synced">&#8644; S-1A / S-2B SYNCED</div>
+    <div class="top-chip ready">&#10003; SAR ENGINE: NOMINAL</div>
+    <div class="top-chip" style="color:var(--accent);">&#9672; PIPELINE: WIZARD READY</div>
   </div>
   <div class="topbar-right">
-    <div class="icon-btn">&#128276;<div class="notif-badge">3</div></div>
-    <div class="icon-btn">&#9881;</div>
+    <div class="icon-btn" title="Notifications">&#128276;<div class="notif-badge">3</div></div>
+    <a href="settings.html" class="icon-btn" title="Settings" style="text-decoration:none;">&#9881;</a>
     <div class="user-pill">
-      <div class="user-avatar">OPS</div>
+      <div class="user-avatar">EV</div>
       <div class="user-info">
-        <span class="user-name">Ops Analyst</span>
-        <span class="user-role">GIS-OPS &middot; CMD-L1</span>
+        <span class="user-name">Dr. Elena Vance</span>
+        <span class="user-role">OPS-DIR &middot; CMD-L1</span>
       </div>
     </div>
   </div>
 </header>
 
-<!-- LAYOUT -->
+<!-- MAIN LAYOUT -->
 <div id="layout">
+
   <!-- SIDEBAR -->
   <nav id="sidebar">
-    <a href="index.html" class="nav-item"><span class="nav-icon">&#9638;</span>Dashboard</a>
-    <a href="new-analysis.html" class="nav-item active"><span class="nav-icon">&#10022;</span>New Analysis</a>
-    <a href="ai-change-detection.html" class="nav-item"><span class="nav-icon">&#9650;</span>AI Change Detection</a>
-    <a href="confidence-zoning.html" class="nav-item"><span class="nav-icon">&#128737;</span>Spatial Confidence</a>
-    <a href="emergency-priority-map.html" class="nav-item"><span class="nav-icon">&#128506;</span>Emergency Priority Map</a>
-    <a href="impact-analysis.html" class="nav-item"><span class="nav-icon">&#9741;</span>Impact Analysis</a>
-    <a href="events.html" class="nav-item"><span class="nav-icon">&#9889;</span>Events<span class="nav-badge">6</span></a>
-    <a href="reports.html" class="nav-item"><span class="nav-icon">&#128196;</span>Reports</a>
-    <a href="settings.html" class="nav-item"><span class="nav-icon">&#9881;</span>Settings</a>
+    <a href="index.html" class="nav-item">
+      <span class="nav-icon">&#9638;</span> Dashboard
+    </a>
+    <a href="new-analysis.html" class="nav-item active">
+      <span class="nav-icon">&#10022;</span> New Analysis
+    </a>
+    <a href="ai-change-detection.html" class="nav-item">
+      <span class="nav-icon">&#9650;</span> AI Change Detection
+    </a>
+    <a href="confidence-zoning.html" class="nav-item">
+      <span class="nav-icon">&#128737;</span> Spatial Confidence
+    </a>
+    <a href="emergency-priority-map.html" class="nav-item">
+      <span class="nav-icon">&#128506;</span> Emergency Priority Map
+    </a>
+    <a href="impact-analysis.html" class="nav-item">
+      <span class="nav-icon">&#9741;</span> Impact Analysis
+    </a>
+    <a href="events.html" class="nav-item">
+      <span class="nav-icon">&#9889;</span> Events
+      <span class="nav-badge">6</span>
+    </a>
+    <a href="reports.html" class="nav-item">
+      <span class="nav-icon">&#128196;</span> Reports
+    </a>
+    <a href="settings.html" class="nav-item">
+      <span class="nav-icon">&#9881;</span> Settings
+    </a>
+
+    <div class="nav-footer-status">
+      <div class="nfs-status">
+        <span class="nfs-dot"></span> Sentinel Engine
+      </div>
+      <div class="nfs-sub">SAR GRD v3.4.1 &middot; Active</div>
+    </div>
   </nav>
 
-  <!-- MAIN -->
+  <!-- MAIN VIEW -->
   <main id="main">
-    <!-- PAGE HEADER -->
-    <div id="page-header">
-      <div class="breadcrumb">
-        <a href="index.html">Pipelines</a><span class="bc-sep">&nbsp;/&nbsp;</span>
-        <a href="#">Analysis Wizard</a><span class="bc-sep">&nbsp;/&nbsp;</span>
-        <span class="bc-current">TASK-78829-SAR</span>
+
+    <!-- SUBTITLE & TOP ACTION ROW -->
+    <div id="page-sub-row">
+      <div class="sub-row-left">
+        <div class="sub-crumb">
+          <a href="index.html">Pipelines</a> / <a href="#">Wizard</a> / <span class="active-crumb">TASK-78829-SAR</span>
+        </div>
+        <div class="sub-title-row">
+          <h1 class="sub-title">Create Disaster Analysis</h1>
+          <span class="pipeline-badge">SAR-ENGINE READY</span>
+        </div>
+        <p class="sub-desc">
+          Configure multi-temporal satellite data passes, spatial bounds (AOI), and automated change-detection pipelines.
+        </p>
       </div>
-      <div class="page-title-row">
-        <div class="page-title-left">
-          <h1>Create Disaster Analysis</h1>
-          <span class="sar-badge">&#9679; SAR-ENGINE READY</span>
-        </div>
-        <div class="page-title-right">
-          <button class="btn btn-ghost">&#128190; Save Analysis Draft</button>
-          <button class="btn btn-accent">&#9881; Pipeline Presets: SAR Rapid Flood</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONTENT -->
-    <div id="content">
-      <!-- LEFT PANEL -->
-      <div id="left-panel">
-
-        <!-- STEP 01 -->
-        <div class="step-card active-step">
-          <div class="step-header">
-            <div class="step-num-badge">01</div>
-            <span class="step-title">Step 01 &mdash; Event Specification</span>
-            <span class="step-pill pill-geo">GEO-INCIDENT</span>
-            <span style="font-size:9px;color:var(--text-muted);margin-left:4px;">// NEW</span>
-          </div>
-          <div class="step-body">
-            <div class="form-group">
-              <label class="form-label">Event Identifier / Name <span class="req-mark">* REQUIRED</span></label>
-              <input id="event-name" class="form-input" type="text"
-                placeholder="Enter event name (e.g. Coastal Monsoon Surge)"
-                value="Assam Floods, June 2022 (Barpeta-Nalbari)"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Disaster Classification</label>
-              <div class="disaster-grid">
-                <button class="disaster-btn sel-flood" onclick="selectDisaster(this,'flood')">&#128167; Flood</button>
-                <button class="disaster-btn" onclick="selectDisaster(this,'cyclone')">&#127744; Cyclone</button>
-                <button class="disaster-btn" onclick="selectDisaster(this,'landslide')">&#127960; Landslide</button>
-                <button class="disaster-btn" onclick="selectDisaster(this,'wildfire')">&#128293; Wildfire</button>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Administrative Domain / Location</label>
-                <input class="form-input" type="text" id="admin-domain"
-                  placeholder="Enter region, district or administrative domain"
-                  value="Barpeta, Nalbari - Assam, India"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Operational Severity</label>
-                <select class="form-select" id="severity">
-                  <option value="">Select severity level</option>
-                  <option value="critical" selected>Critical - Life-threatening</option>
-                  <option value="high">High - Major impact</option>
-                  <option value="medium">Medium - Moderate impact</option>
-                  <option value="low">Low - Minor impact</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Tactical Incident Brief</label>
-              <textarea class="form-textarea" id="brief"
-                placeholder="Describe the incident context, observed hazards, and operational goals...">Brahmaputra north-bank flooding during June 2022 monsoon. Sentinel-1 SAR pre/post comparison over Barpeta-Nalbari district. Multi-factor impact scoring for emergency responder priority deployment.</textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 02 -->
-        <div class="step-card active-step">
-          <div class="step-header">
-            <div class="step-num-badge">02</div>
-            <span class="step-title">Step 02 &mdash; Affected Region (AOI) Definition</span>
-            <div style="margin-left:auto;">
-              <div class="no-boundary-pill"><span class="nb-dot"></span>AOI Defined</div>
-            </div>
-          </div>
-          <div class="step-body">
-            <div class="search-box">
-              <span class="search-icon">&#128269;</span>
-              <input id="aoi-search" type="text" placeholder="Search location or coordinates..." value="Barpeta, Assam, India"/>
-            </div>
-            <div class="map-tools">
-              <button class="map-tool-btn draw" id="btn-draw">&#9654; Draw Polygon</button>
-              <button class="map-tool-btn" id="btn-geojson">&#128196; GeoJSON / KML</button>
-              <button class="map-tool-btn" id="btn-bbox">&#9974; BBox from Config</button>
-            </div>
-            <div id="map"></div>
-            <div class="aoi-stats">
-              <div class="aoi-stat">
-                <div class="aoi-stat-label">Surface AOI</div>
-                <div class="aoi-stat-val has-val" id="aoi-surface">&mdash;</div>
-              </div>
-              <div class="aoi-stat">
-                <div class="aoi-stat-label">Population Density</div>
-                <div class="aoi-stat-val" id="aoi-pop">&mdash;</div>
-              </div>
-              <div class="aoi-stat">
-                <div class="aoi-stat-label">Administrative Units</div>
-                <div class="aoi-stat-val" id="aoi-admin">&mdash;</div>
-              </div>
-              <div class="aoi-stat">
-                <div class="aoi-stat-label">Infrastructure</div>
-                <div class="aoi-stat-val" id="aoi-infra">&mdash;</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT PANEL -->
-      <div id="right-panel">
-
-        <!-- STEP 03 -->
-        <div class="step-card">
-          <div class="step-header">
-            <div class="step-num-badge">03</div>
-            <span class="step-title">Step 03 &mdash; Multi-Temporal Passes</span>
-            <span class="step-pill pill-await">AWAITING SELECTION</span>
-          </div>
-          <div class="step-body">
-            <div class="temporal-pairing">
-              <div class="tp-label">&#128260; Temporal Pairing:</div>
-              <div class="tp-status">AWAITING DATE SELECTION</div>
-            </div>
-
-            <!-- T0 Pre -->
-            <div class="temporal-pass">
-              <div class="tp-header">
-                <span class="tp-badge">T0 &bull; PRE-EVENT (BEFORE)</span>
-                <span style="flex:1"></span>
-                <span class="tp-aw">AWAITING SELECTION</span>
-              </div>
-              <div class="tp-body">
-                <div class="tp-row">
-                  <div class="tp-field">
-                    <div class="tp-lbl">Date</div>
-                    <input class="tp-date" type="date" id="pre-date" value="2022-04-20"/>
-                  </div>
-                  <div class="tp-field">
-                    <div class="tp-lbl">Satellite</div>
-                    <select class="tp-sat" id="pre-sat">
-                      <option>Sentinel-1 SAR / Sentinel-2</option>
-                      <option>Sentinel-1 SAR Only</option>
-                      <option>Sentinel-2 Optical Only</option>
-                      <option>Landsat-8</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="tp-row">
-                  <div class="tp-field"><div class="tp-lbl">Resolution</div><div class="tp-val">10 m</div></div>
-                  <div class="tp-field"><div class="tp-lbl">Status</div><div class="tp-val aw">Awaiting selection</div></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="tp-divider">
-              <div class="tp-divider-line"></div>
-              <div class="tp-divider-lbl">&#9654; Temporal Delta Comparison</div>
-              <div class="tp-divider-line"></div>
-            </div>
-
-            <!-- T1 Post -->
-            <div class="temporal-pass">
-              <div class="tp-header">
-                <span class="tp-badge post">T1 &bull; POST-EVENT (AFTER)</span>
-                <span style="flex:1"></span>
-                <span class="tp-aw">AWAITING SELECTION</span>
-              </div>
-              <div class="tp-body">
-                <div class="tp-row">
-                  <div class="tp-field">
-                    <div class="tp-lbl">Date</div>
-                    <input class="tp-date" type="date" id="post-date" value="2022-06-17"/>
-                  </div>
-                  <div class="tp-field">
-                    <div class="tp-lbl">Satellite</div>
-                    <select class="tp-sat" id="post-sat">
-                      <option>Sentinel-1 SAR / Sentinel-2</option>
-                      <option>Sentinel-1 SAR Only</option>
-                      <option>Sentinel-2 Optical Only</option>
-                      <option>Landsat-8</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="tp-row">
-                  <div class="tp-field"><div class="tp-lbl">Resolution</div><div class="tp-val">10 m</div></div>
-                  <div class="tp-field"><div class="tp-lbl">Status</div><div class="tp-val aw">Awaiting selection</div></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="tp-note">
-              <span class="tp-note-icon">&#9432;</span>
-              <span class="tp-note-text">Awaiting date selection + Configure pre-event baseline and crisis acquisition passes to enable change detection.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 04 -->
-        <div class="step-card">
-          <div class="step-header">
-            <div class="step-num-badge">04</div>
-            <span class="step-title">Step 04 &mdash; Review &amp; Launch</span>
-            <span class="step-pill pill-pending">SETUP PENDING</span>
-          </div>
-          <div class="review-body">
-            <div class="review-row"><span class="review-key">Event Name</span><span class="review-val set" id="rv-name">Not specified</span></div>
-            <div class="review-row"><span class="review-key">Location</span><span class="review-val set" id="rv-location">Not specified</span></div>
-            <div class="review-row"><span class="review-key">Before Date</span><span class="review-val" id="rv-before">&mdash;</span></div>
-            <div class="review-row"><span class="review-key">After Date</span><span class="review-val" id="rv-after">&mdash;</span></div>
-            <div class="review-row"><span class="review-key">Satellite</span><span class="review-val" id="rv-sat">&mdash;</span></div>
-          </div>
-          <div class="auto-notify">
-            <div class="an-cb" onclick="toggleNotify()"><span class="an-check" id="an-check">&#10003;</span></div>
-            <div class="an-text">
-              <div class="an-title">Auto-Notify Emergency Centers</div>
-              <div class="an-desc">Dispatches instantaneous alerts to NDRF &amp; State Emergency Operation Center once model confidence threshold exceeds 85%.</div>
-            </div>
-          </div>
-          <div class="review-actions">
-            <button class="btn btn-run" id="btn-run" style="flex:1;" onclick="runAnalysis()">&#9889; RUN DISASTER ANALYSIS</button>
-            <button class="btn btn-sim" onclick="simulate()">&#9654; Simulate</button>
-          </div>
-        </div>
-
+      <div class="sub-row-actions">
+        <button class="btn btn-preset" onclick="loadPreset('assam')" title="Load Assam Floods dataset">&#9889; Assam Preset</button>
+        <button class="btn btn-preset" onclick="loadPreset('konkan')" title="Load Konkan Coast dataset">&#9889; Konkan Preset</button>
+        <button class="btn btn-secondary" onclick="saveDraft()">&#128190; Save Draft</button>
       </div>
     </div>
+
+    <!-- WIZARD GRID -->
+    <div id="wizard-container">
+
+      <!-- ═══════════ LEFT COLUMN: STEPS 01 & 02 ═══════════ -->
+      <div class="wizard-col">
+
+        <!-- STEP 01: EVENT SPECIFICATION -->
+        <div class="w-card" id="card-step1">
+          <div class="w-card-header">
+            <div class="wch-left">
+              <div class="step-indicator">01</div>
+              <h2 class="wch-title">Event Specification</h2>
+            </div>
+            <span class="wch-tag">GEO-INCIDENT // NEW</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              <span>Event Identifier / Name</span>
+              <span class="req">REQUIRED</span>
+            </label>
+            <input type="text" id="event-name" class="form-input" placeholder="e.g. Assam Monsoon Surge & Brahmaputra Basin Inundation" value="Assam Floods June 2022"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Disaster Classification</label>
+            <div class="disaster-selector-grid">
+              <div class="disaster-pill active" data-type="flood" onclick="selectDisaster('flood')">
+                <span class="dp-icon">&#127754;</span>
+                <span class="dp-name">Flood</span>
+              </div>
+              <div class="disaster-pill" data-type="cyclone" onclick="selectDisaster('cyclone')">
+                <span class="dp-icon">&#127744;</span>
+                <span class="dp-name">Cyclone</span>
+              </div>
+              <div class="disaster-pill" data-type="landslide" onclick="selectDisaster('landslide')">
+                <span class="dp-icon">&#9968;</span>
+                <span class="dp-name">Landslide</span>
+              </div>
+              <div class="disaster-pill" data-type="wildfire" onclick="selectDisaster('wildfire')">
+                <span class="dp-icon">&#128293;</span>
+                <span class="dp-name">Wildfire</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Administrative Domain / Location</label>
+              <input type="text" id="admin-domain" class="form-input" placeholder="e.g. Assam State, Brahmaputra Valley, India" value="Barpeta & Morigaon, Assam, India"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Operational Severity Level</label>
+              <select id="severity" class="form-select">
+                <option value="critical" selected>Critical &mdash; Catastrophic Inundation</option>
+                <option value="high">High &mdash; Major Infrastructure Impact</option>
+                <option value="medium">Medium &mdash; Localized Flooding</option>
+                <option value="low">Low &mdash; Minor Elevation Pooling</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tactical Incident Brief &amp; Context</label>
+            <textarea id="incident-brief" class="form-textarea" rows="2" placeholder="Detail the operational hazard, affected river basins, and relief priorities...">Severe pre-monsoon precipitation resulted in widespread inundation along the lower Brahmaputra valley. Rapid SAR change detection required to map submerged transport corridors and isolated settlements.</textarea>
+          </div>
+        </div>
+
+        <!-- STEP 02: AFFECTED REGION (AOI) -->
+        <div class="w-card" id="card-step2">
+          <div class="w-card-header">
+            <div class="wch-left">
+              <div class="step-indicator">02</div>
+              <h2 class="wch-title">Affected Region (AOI Definition)</h2>
+            </div>
+            <span class="wch-tag" id="aoi-header-status" style="color:var(--green)">BOUNDS ACTIVE &middot; ASSAM BASIN</span>
+          </div>
+
+          <!-- Map Toolbar -->
+          <div class="map-toolbar">
+            <div class="map-search-box">
+              <span style="color:var(--text-muted);">&#128269;</span>
+              <input type="text" id="map-search-input" placeholder="Search coordinates or place (e.g. 26.2, 91.8)..." onkeydown="handleMapSearch(event)"/>
+            </div>
+            <div class="map-toolbar-actions">
+              <button class="map-btn" id="btn-draw" onclick="toggleDrawMode()">
+                <span>&#11039;</span> <span id="draw-btn-text">Draw AOI Box</span>
+              </button>
+              <button class="map-btn" onclick="fitAOIBounds()">
+                <span>&#128301;</span> Fit AOI
+              </button>
+              <button class="map-btn" onclick="resetAOI()">
+                <span>&#8634;</span> Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive GIS Map -->
+          <div class="map-wrapper">
+            <div id="aoi-map"></div>
+            <div class="map-overlay-badge" id="map-coords-badge">
+              &#128205; AOI: 26.05&deg;N &ndash; 26.45&deg;N &middot; 91.20&deg;E &ndash; 92.15&deg;E
+            </div>
+            <div class="aoi-presets-bar">
+              <button class="btn-preset" onclick="setAOIBounds('assam')">Assam Basin</button>
+              <button class="btn-preset" onclick="setAOIBounds('konkan')">Konkan Coast</button>
+              <button class="btn-preset" onclick="setAOIBounds('wayanad')">Wayanad Hills</button>
+              <button class="btn-preset" onclick="setAOIBounds('odisha')">Odisha Delta</button>
+            </div>
+          </div>
+
+          <!-- Telemetry Stats -->
+          <div class="telemetry-strip">
+            <div class="telem-item">
+              <span class="telem-lbl">Surface AOI</span>
+              <span class="telem-val accent" id="stat-aoi">1,482 km&sup2;</span>
+            </div>
+            <div class="telem-item">
+              <span class="telem-lbl">Est. Population</span>
+              <span class="telem-val" id="stat-pop">1.24 Million</span>
+            </div>
+            <div class="telem-item">
+              <span class="telem-lbl">Admin Sectors</span>
+              <span class="telem-val" id="stat-admin">4 Districts</span>
+            </div>
+            <div class="telem-item">
+              <span class="telem-lbl">Critical Infra</span>
+              <span class="telem-val amber" id="stat-infra">38 Bridges / Roads</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ═══════════ RIGHT COLUMN: STEPS 03 & 04 ═══════════ -->
+      <div class="wizard-col">
+
+        <!-- STEP 03: MULTI-TEMPORAL SATELLITE PAIRING -->
+        <div class="w-card" id="card-step3">
+          <div class="w-card-header">
+            <div class="wch-left">
+              <div class="step-indicator">03</div>
+              <h2 class="wch-title">Multi-Temporal Satellite Passes</h2>
+            </div>
+            <span class="wch-tag" style="color:var(--accent);">PAIRED &middot; SENTINEL-1 SAR</span>
+          </div>
+
+          <div class="pairing-card-grid">
+
+            <!-- PRE-EVENT PASS (T0) -->
+            <div class="temporal-pass-box">
+              <div class="tpb-head">
+                <div class="tpb-title">
+                  <span class="tpb-dot blue"></span>
+                  T0 &middot; Pre-Event Baseline Pass
+                </div>
+                <span class="tpb-tag">CALIBRATED REFERENCE</span>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Acquisition Date</label>
+                  <input type="date" id="date-t0" class="form-input" value="2022-05-28" onchange="updateReviewSummary()"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sensor Constellation</label>
+                  <select id="sensor-t0" class="form-select" onchange="updateReviewSummary()">
+                    <option value="S1-SAR" selected>Sentinel-1 C-SAR (IW GRD)</option>
+                    <option value="S2-MSI">Sentinel-2 MSI Multi-spectral</option>
+                    <option value="L9-OLI">Landsat-9 OLI-2</option>
+                  </select>
+                </div>
+              </div>
+              <div class="pass-props-grid">
+                <div class="pp-item">
+                  <span class="pp-lbl">Orbit Direction</span>
+                  <span class="pp-val">DESCENDING &middot; Track 136</span>
+                </div>
+                <div class="pp-item">
+                  <span class="pp-lbl">Polarization</span>
+                  <span class="pp-val">Dual-Pol (VV + VH)</span>
+                </div>
+                <div class="pp-item">
+                  <span class="pp-lbl">Ground Resolution</span>
+                  <span class="pp-val">10.0 m / pixel</span>
+                </div>
+                <div class="pp-item">
+                  <span class="pp-lbl">Calibration Quality</span>
+                  <span class="pp-val" style="color:var(--green)">100% NOMINAL</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DELTA SEPARATOR -->
+            <div class="temporal-separator">
+              <div class="delta-badge" id="temporal-delta-badge">
+                <span>&#8693;</span> TEMPORAL DELTA: +18 DAYS POST-BASELINE
+              </div>
+            </div>
+
+            <!-- POST-EVENT PASS (T1) -->
+            <div class="temporal-pass-box">
+              <div class="tpb-head">
+                <div class="tpb-title">
+                  <span class="tpb-dot red"></span>
+                  T1 &middot; Post-Crisis Acquisition
+                </div>
+                <span class="tpb-tag" style="color:var(--amber)">CRISIS DISPATCH</span>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Acquisition Date</label>
+                  <input type="date" id="date-t1" class="form-input" value="2022-06-15" onchange="updateReviewSummary()"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Sensor Constellation</label>
+                  <select id="sensor-t1" class="form-select" onchange="updateReviewSummary()">
+                    <option value="S1-SAR" selected>Sentinel-1 C-SAR (IW GRD)</option>
+                    <option value="S2-MSI">Sentinel-2 MSI Multi-spectral</option>
+                    <option value="L9-OLI">Landsat-9 OLI-2</option>
+                  </select>
+                </div>
+              </div>
+              <div class="pass-props-grid">
+                <div class="pp-item">
+                  <span class="pp-lbl">Orbit Direction</span>
+                  <span class="pp-val">DESCENDING &middot; Track 136</span>
+                </div>
+                <div class="pp-item">
+                  <span class="pp-lbl">Incidence Angle</span>
+                  <span class="pp-val">34.8&deg; &plusmn; 2.1&deg; Flattened</span>
+                </div>
+                <div class="pp-item">
+                  <span class="pp-lbl">Speckle Suppression</span>
+                  <span class="pp-val">Lee Sigma 7x7 Filter</span>
+                </div>
+                <div class="pp-item">
+                  <span class="pp-lbl">Co-registration RMSE</span>
+                  <span class="pp-val" style="color:var(--green)">&lt; 0.12 Pixels</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- STEP 04: PIPELINE REVIEW & LAUNCH -->
+        <div class="w-card" id="card-step4">
+          <div class="w-card-header">
+            <div class="wch-left">
+              <div class="step-indicator">04</div>
+              <h2 class="wch-title">AI Pipeline Review &amp; Launch</h2>
+            </div>
+            <span class="wch-tag" style="color:var(--green);">&#9679; READY FOR EXECUTION</span>
+          </div>
+
+          <!-- Algorithm Selection -->
+          <div class="algo-picker-box">
+            <label class="form-label">Change Detection Algorithm</label>
+            <div class="algo-option selected" id="algo-otsu" onclick="selectAlgo('otsu')">
+              <div class="ao-left">
+                <div class="ao-title">Bayesian Otsu Log-Ratio (Recommended)</div>
+                <div class="ao-desc">Optimal for SAR cloud-penetrating water detection &middot; Suppresses terrain shadowing</div>
+              </div>
+              <span style="color:var(--accent); font-weight:700;">&#10003;</span>
+            </div>
+            <div class="algo-option" id="algo-unet" onclick="selectAlgo('unet')">
+              <div class="ao-left">
+                <div class="ao-title">Siamese U-Net Deep Learning</div>
+                <div class="ao-desc">Spatial context reasoning for fine infrastructure &amp; urban flood pooling</div>
+              </div>
+              <span style="color:var(--text-muted);">&#9675;</span>
+            </div>
+          </div>
+
+          <!-- Review Summary Table -->
+          <table class="review-table">
+            <tr>
+              <td class="rt-label">Event Name</td>
+              <td class="rt-val" id="rev-name">Assam Floods June 2022</td>
+            </tr>
+            <tr>
+              <td class="rt-label">AOI Bounds</td>
+              <td class="rt-val" id="rev-aoi">Barpeta & Morigaon (1,482 km&sup2;)</td>
+            </tr>
+            <tr>
+              <td class="rt-label">Baseline (T0)</td>
+              <td class="rt-val" id="rev-t0">2022-05-28 &middot; Sentinel-1A</td>
+            </tr>
+            <tr>
+              <td class="rt-label">Post-Crisis (T1)</td>
+              <td class="rt-val" id="rev-t1">2022-06-15 &middot; Sentinel-1A</td>
+            </tr>
+            <tr>
+              <td class="rt-label">Confidence Gate</td>
+              <td class="rt-val" style="color:var(--green)">Bayesian Prior &ge; 85%</td>
+            </tr>
+          </table>
+
+          <!-- Auto Notify Toggle -->
+          <label class="notify-check-card">
+            <input type="checkbox" id="auto-notify-chk" checked/>
+            <div class="ncc-body">
+              <span class="ncc-title">Auto-Notify Emergency Centers</span>
+              <span class="ncc-desc">Automatically dispatch high-confidence inundation vectors to NDRF Command and Assam State Disaster Management Authority upon pipeline completion.</span>
+            </div>
+          </label>
+
+          <!-- Launch Actions -->
+          <div class="launch-actions-row">
+            <button class="btn-run-big" id="btn-run" onclick="launchAnalysis()">
+              <span>&#9889;</span>
+              <span id="btn-run-text">Run Disaster Analysis</span>
+            </button>
+            <button class="btn-sim-quick" id="btn-sim" onclick="simulateQuickLaunch()">
+              <span>&#128640;</span> Simulate
+            </button>
+          </div>
+
+          <!-- Real-Time Pipeline Progress Box -->
+          <div id="pipeline-progress-box">
+            <div class="ppb-header">
+              <span id="ppb-title-text">EXECUTING GEOINT ORBITAL PIPELINE</span>
+              <span id="ppb-pct-text">0%</span>
+            </div>
+            <div class="ppb-bar-container">
+              <div class="ppb-bar-fill" id="ppb-fill"></div>
+            </div>
+            <div class="ppb-log">
+              <span class="ppb-log-dot"></span>
+              <span id="ppb-log-text">Initializing radiometric calibration engine...</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
   </main>
+
 </div>
 
+<!-- ═══════════ SCRIPTS ═══════════ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// Map
-var map = L.map('map',{center:[26.235,91.1],zoom:9,zoomControl:true,attributionControl:false});
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:''}).addTo(map);
-L.rectangle([[26.10,90.95],[26.37,91.25]],{color:'#38a5f8',weight:1.5,fillColor:'#38a5f8',fillOpacity:0.12,dashArray:'4 3'}).addTo(map);
-map.fitBounds([[26.10,90.95],[26.37,91.25]],{padding:[20,20]});
-var area=(26.37-26.10)*111*(91.25-90.95)*111*Math.cos(26.235*Math.PI/180);
-document.getElementById('aoi-surface').textContent=Math.round(area)+' km²';
-document.getElementById('aoi-pop').textContent='~820 k';
-document.getElementById('aoi-admin').textContent='3 districts';
-document.getElementById('aoi-infra').textContent='Roads + Fac';
-
-// Disaster select
-function selectDisaster(el,type){
-  document.querySelectorAll('.disaster-btn').forEach(function(b){b.className='disaster-btn';});
-  var m={flood:'sel-flood',cyclone:'sel-cyclone',landslide:'sel-landslide',wildfire:'sel-wildfire'};
-  el.className='disaster-btn '+(m[type]||'sel-flood');
-  updateReview();
-}
-
-// Auto-notify
-var notifyOn=true;
-function toggleNotify(){
-  notifyOn=!notifyOn;
-  document.getElementById('an-check').style.display=notifyOn?'':'none';
-}
-
-// Live review
-function updateReview(){
-  var n=document.getElementById('event-name').value.trim();
-  var l=document.getElementById('admin-domain').value.trim();
-  var b=document.getElementById('pre-date').value;
-  var a=document.getElementById('post-date').value;
-  var sel=document.getElementById('pre-sat');
-  var s=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
-  document.getElementById('rv-name').textContent=n||'Not specified';
-  document.getElementById('rv-location').textContent=l||'Not specified';
-  document.getElementById('rv-before').textContent=b||'—';
-  document.getElementById('rv-after').textContent=a||'—';
-  document.getElementById('rv-sat').textContent=s||'—';
-  ['rv-name','rv-location'].forEach(function(id){document.getElementById(id).className='review-val set';});
-  ['rv-before','rv-after','rv-sat'].forEach(function(id){
-    var el=document.getElementById(id);
-    el.className='review-val'+(el.textContent!=='—'?' set':'');
-  });
-}
-['event-name','admin-domain','pre-date','post-date','pre-sat'].forEach(function(id){
-  var el=document.getElementById(id);if(el)el.addEventListener('input',updateReview);
-});
-updateReview();
-
-// Tab switching
-function switchTab(n){
-  var tabs=document.querySelectorAll('.wtab');
-  tabs.forEach(function(t,i){
-    t.classList.remove('active','done');
-    if(i+1<n)t.classList.add('done');
-  });
-  if(tabs[n-1])tabs[n-1].classList.add('active');
-
-  var stepCards = document.querySelectorAll('.step-card');
-  stepCards.forEach(function(card, idx) {
-    if (idx + 1 === n) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      card.style.borderColor = 'var(--accent)';
-      setTimeout(function(){ card.style.borderColor = ''; }, 1500);
+(function() {
+  // Preset definitions
+  var PRESETS = {
+    assam: {
+      name: "Assam Floods June 2022",
+      type: "flood",
+      domain: "Barpeta, Morigaon & Kamrup, Assam",
+      severity: "critical",
+      brief: "Pre-monsoon deluge caused catastrophic embankment breaches along the Brahmaputra. Multi-temporal SAR analysis tracks inundation expansion across 1,482 km².",
+      bounds: [[26.05, 91.20], [26.45, 92.15]],
+      center: [26.25, 91.68],
+      zoom: 9,
+      t0: "2022-05-28",
+      t1: "2022-06-15",
+      sensor: "S1-SAR",
+      aoiKm2: "1,482 km²",
+      pop: "1.24 Million",
+      admin: "4 Districts",
+      infra: "38 Bridges / Roads"
+    },
+    konkan: {
+      name: "Konkan Monsoon Surge 2026",
+      type: "flood",
+      domain: "Ratnagiri & Raigad, Maharashtra",
+      severity: "high",
+      brief: "Extreme coastal cloudburst led to Vashishti River flash flooding and transport corridor isolation.",
+      bounds: [[17.50, 73.10], [17.95, 73.65]],
+      center: [17.72, 73.38],
+      zoom: 9,
+      t0: "2026-06-02",
+      t1: "2026-06-18",
+      sensor: "S1-SAR",
+      aoiKm2: "895 km²",
+      pop: "420,000",
+      admin: "2 Districts",
+      infra: "14 Highway Passes"
+    },
+    wayanad: {
+      name: "Wayanad Landslide Surge 2024",
+      type: "landslide",
+      domain: "Meppadi & Chooralmala, Wayanad, Kerala",
+      severity: "critical",
+      brief: "Catastrophic slope destabilization across tea estate slopes. Co-registration with pre-event DEM to identify slide extent.",
+      bounds: [[11.45, 76.08], [11.60, 76.22]],
+      center: [11.53, 76.15],
+      zoom: 11,
+      t0: "2024-07-20",
+      t1: "2024-07-31",
+      sensor: "S1-SAR",
+      aoiKm2: "142 km²",
+      pop: "35,000",
+      admin: "1 Taluk",
+      infra: "3 Key Bridges"
+    },
+    odisha: {
+      name: "Odisha Coastal Cyclone Surge",
+      type: "cyclone",
+      domain: "Puri & Jagatsinghpur, Odisha",
+      severity: "high",
+      brief: "Bay of Bengal cyclonic storm surge causing low-lying salt marsh and paddy inundation.",
+      bounds: [[19.70, 85.70], [20.25, 86.50]],
+      center: [19.98, 86.10],
+      zoom: 9,
+      t0: "2024-10-12",
+      t1: "2024-10-26",
+      sensor: "S1-SAR",
+      aoiKm2: "2,180 km²",
+      pop: "1.85 Million",
+      admin: "3 Districts",
+      infra: "52 Coastal Nodes"
     }
+  };
+
+  // State variables
+  var currentPresetKey = 'assam';
+  var selectedDisaster = 'flood';
+  var selectedAlgo = 'otsu';
+  var drawMode = false;
+  var aoiRectangle = null;
+  var currentBounds = PRESETS.assam.bounds;
+
+  // Initialize Leaflet Map
+  var map = L.map('aoi-map', {
+    center: PRESETS.assam.center,
+    zoom: PRESETS.assam.zoom,
+    zoomControl: true,
+    attributionControl: false
   });
-}
 
-// Map tools
-document.getElementById('btn-bbox').addEventListener('click',function(){
-  map.fitBounds([[26.10,90.95],[26.37,91.25]],{padding:[20,20]});
-});
-var drawMode=false;
-document.getElementById('btn-draw').addEventListener('click',function(){
-  drawMode=!drawMode;
-  this.innerHTML=drawMode?'&#9209; Cancel Draw':'&#9654; Draw Polygon';
-  this.className='map-tool-btn'+(drawMode?' draw':'');
-});
+  // Base Imagery Tiles
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 18
+  }).addTo(map);
 
-// Run analysis
-function runAnalysis(){
-  var n=document.getElementById('event-name').value.trim();
-  if(!n){
-    document.getElementById('event-name').style.borderColor='var(--red)';
-    document.getElementById('event-name').focus();return;
+  // ESRI reference labels overlay for tactical context (watermark-free)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 18,
+    opacity: 0.8
+  }).addTo(map);
+
+  // Draw current AOI bounding box
+  function drawAOIBoundingBox(bounds) {
+    if (aoiRectangle) {
+      map.removeLayer(aoiRectangle);
+    }
+    aoiRectangle = L.rectangle(bounds, {
+      color: '#38a5f8',
+      weight: 2,
+      fillColor: '#38a5f8',
+      fillOpacity: 0.15,
+      dashArray: '5, 5'
+    }).addTo(map);
+
+    aoiRectangle.bindPopup("<strong style='color:#38a5f8'>AOI TARGET ENVELOPE</strong><br>Status: Spatial Extent Defined<br>Multi-temporal SAR Tiles Co-registered");
   }
-  var btn=document.getElementById('btn-run');
-  btn.disabled=true;btn.style.opacity='.7';
-  btn.innerHTML='&#9203; Submitting to Pipeline...';
-  setTimeout(function(){
-    btn.innerHTML='&#10004; Queued &mdash; Opening AI Detection...';
-    btn.style.background='linear-gradient(135deg,#166534,#16a34a)';
-    btn.style.animation='none';
-    setTimeout(function(){
-      window.location.href = 'ai-change-detection.html';
-    }, 900);
-  }, 1200);
-}
+  drawAOIBoundingBox(currentBounds);
 
-function simulate(){
-  var b=document.getElementById('btn-run');
-  b.innerHTML='&#9203; Simulating Run &rarr;';
-  setTimeout(function(){
-    window.location.href = 'ai-change-detection.html';
-  }, 900);
-}
+  // Global expose functions
+  window.selectDisaster = function(type) {
+    selectedDisaster = type;
+    document.querySelectorAll('.disaster-pill').forEach(function(pill) {
+      if (pill.getAttribute('data-type') === type) {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+    updateReviewSummary();
+  };
 
-// Nav
-document.querySelectorAll('.nav-item').forEach(function(item){
-  item.addEventListener('click',function(e){
-    if(item.getAttribute('target')==='_blank') return;
-    var href = item.getAttribute('href');
-    if(href && href !== '#') return;
-    e.preventDefault();
-    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
-    item.classList.add('active');
+  window.selectAlgo = function(algo) {
+    selectedAlgo = algo;
+    var otsu = document.getElementById('algo-otsu');
+    var unet = document.getElementById('algo-unet');
+    if (algo === 'otsu') {
+      otsu.classList.add('selected');
+      otsu.querySelector('span:last-child').innerHTML = '&#10003;';
+      otsu.querySelector('span:last-child').style.color = 'var(--accent)';
+      unet.classList.remove('selected');
+      unet.querySelector('span:last-child').innerHTML = '&#9675;';
+      unet.querySelector('span:last-child').style.color = 'var(--text-muted)';
+    } else {
+      unet.classList.add('selected');
+      unet.querySelector('span:last-child').innerHTML = '&#10003;';
+      unet.querySelector('span:last-child').style.color = 'var(--accent)';
+      otsu.classList.remove('selected');
+      otsu.querySelector('span:last-child').innerHTML = '&#9675;';
+      otsu.querySelector('span:last-child').style.color = 'var(--text-muted)';
+    }
+  };
+
+  window.setAOIBounds = function(key) {
+    if (!PRESETS[key]) return;
+    loadPreset(key);
+  };
+
+  window.loadPreset = function(key) {
+    var p = PRESETS[key];
+    if (!p) return;
+    currentPresetKey = key;
+    currentBounds = p.bounds;
+
+    document.getElementById('event-name').value = p.name;
+    document.getElementById('admin-domain').value = p.domain;
+    document.getElementById('severity').value = p.severity;
+    document.getElementById('incident-brief').value = p.brief;
+    document.getElementById('date-t0').value = p.t0;
+    document.getElementById('date-t1').value = p.t1;
+    document.getElementById('topbar-event-title').textContent = p.name.toUpperCase();
+
+    // Stats
+    document.getElementById('stat-aoi').textContent = p.aoiKm2;
+    document.getElementById('stat-pop').textContent = p.pop;
+    document.getElementById('stat-admin').textContent = p.admin;
+    document.getElementById('stat-infra').textContent = p.infra;
+
+    // Map view
+    map.flyToBounds(p.bounds, { padding: [30, 30], duration: 1 });
+    drawAOIBoundingBox(p.bounds);
+
+    // Update overlay badge
+    var b = p.bounds;
+    document.getElementById('map-coords-badge').innerHTML = 
+      '&#128205; AOI: ' + b[0][0].toFixed(2) + '&deg;N &ndash; ' + b[1][0].toFixed(2) + '&deg;N &middot; ' + b[0][1].toFixed(2) + '&deg;E &ndash; ' + b[1][1].toFixed(2) + '&deg;E';
+
+    window.selectDisaster(p.type);
+    updateReviewSummary();
+  };
+
+  window.fitAOIBounds = function() {
+    if (currentBounds) {
+      map.fitBounds(currentBounds, { padding: [30, 30] });
+    }
+  };
+
+  window.resetAOI = function() {
+    loadPreset(currentPresetKey);
+  };
+
+  window.toggleDrawMode = function() {
+    drawMode = !drawMode;
+    var btn = document.getElementById('btn-draw');
+    var txt = document.getElementById('draw-btn-text');
+    if (drawMode) {
+      btn.classList.add('active-tool');
+      txt.textContent = 'Cancel Draw';
+      map.getContainer().style.cursor = 'crosshair';
+    } else {
+      btn.classList.remove('active-tool');
+      txt.textContent = 'Draw AOI Box';
+      map.getContainer().style.cursor = '';
+    }
+  };
+
+  // Map interactive click box definition
+  var startLatLng = null;
+  map.on('mousedown', function(e) {
+    if (!drawMode) return;
+    startLatLng = e.latlng;
   });
-});
+
+  map.on('mouseup', function(e) {
+    if (!drawMode || !startLatLng) return;
+    var endLatLng = e.latlng;
+    var minLat = Math.min(startLatLng.lat, endLatLng.lat);
+    var maxLat = Math.max(startLatLng.lat, endLatLng.lat);
+    var minLng = Math.min(startLatLng.lng, endLatLng.lng);
+    var maxLng = Math.max(startLatLng.lng, endLatLng.lng);
+
+    // Minimum envelope check
+    if (Math.abs(maxLat - minLat) > 0.05 && Math.abs(maxLng - minLng) > 0.05) {
+      currentBounds = [[minLat, minLng], [maxLat, maxLng]];
+      drawAOIBoundingBox(currentBounds);
+      
+      // Calculate approximate area in km2
+      var dLatKm = (maxLat - minLat) * 111;
+      var dLngKm = (maxLng - minLng) * 111 * Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
+      var area = Math.round(dLatKm * dLngKm);
+      document.getElementById('stat-aoi').textContent = area + ' km²';
+      document.getElementById('aoi-header-status').textContent = 'CUSTOM BOUNDS (' + area + ' KM²)';
+
+      document.getElementById('map-coords-badge').innerHTML = 
+        '&#128205; AOI: ' + minLat.toFixed(2) + '&deg;N &ndash; ' + maxLat.toFixed(2) + '&deg;N &middot; ' + minLng.toFixed(2) + '&deg;E &ndash; ' + maxLng.toFixed(2) + '&deg;E';
+      updateReviewSummary();
+    }
+    toggleDrawMode();
+    startLatLng = null;
+  });
+
+  window.handleMapSearch = function(e) {
+    if (e.key === 'Enter') {
+      var val = e.target.value.trim().toLowerCase();
+      if (!val) return;
+      if (val.includes('assam') || val.includes('barpeta') || val.includes('brahmaputra')) {
+        loadPreset('assam');
+      } else if (val.includes('konkan') || val.includes('ratnagiri') || val.includes('mumbai')) {
+        loadPreset('konkan');
+      } else if (val.includes('wayanad') || val.includes('kerala')) {
+        loadPreset('wayanad');
+      } else if (val.includes('odisha') || val.includes('puri')) {
+        loadPreset('odisha');
+      } else {
+        // Try coordinate parsing "lat, lng"
+        var parts = val.split(',');
+        if (parts.length === 2) {
+          var lat = parseFloat(parts[0]);
+          var lng = parseFloat(parts[1]);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            map.setView([lat, lng], 10);
+            return;
+          }
+        }
+        alert('Location recognized. Centering map on target query: ' + val);
+      }
+    }
+  };
+
+  window.updateReviewSummary = function() {
+    var name = document.getElementById('event-name').value.trim() || 'Untitled Disaster';
+    var domain = document.getElementById('admin-domain').value.trim() || 'Undefined Region';
+    var t0 = document.getElementById('date-t0').value;
+    var t1 = document.getElementById('date-t1').value;
+    var s0 = document.getElementById('sensor-t0').value;
+    var aoiText = document.getElementById('stat-aoi').textContent;
+
+    document.getElementById('rev-name').textContent = name;
+    document.getElementById('rev-aoi').textContent = domain + ' (' + aoiText + ')';
+    document.getElementById('rev-t0').textContent = t0 + ' \u00B7 ' + (s0 === 'S1-SAR' ? 'Sentinel-1A' : s0);
+    document.getElementById('rev-t1').textContent = t1 + ' \u00B7 Sentinel-1A';
+
+    // Delta calculation
+    if (t0 && t1) {
+      var d0 = new Date(t0);
+      var d1 = new Date(t1);
+      var diffDays = Math.round((d1 - d0) / (1000 * 60 * 60 * 24));
+      if (!isNaN(diffDays)) {
+        document.getElementById('temporal-delta-badge').innerHTML = 
+          '&#8693; TEMPORAL DELTA: ' + (diffDays >= 0 ? '+' : '') + diffDays + ' DAYS POST-BASELINE';
+      }
+    }
+  };
+
+  document.getElementById('event-name').addEventListener('input', updateReviewSummary);
+  document.getElementById('admin-domain').addEventListener('input', updateReviewSummary);
+
+  window.saveDraft = function() {
+    var name = document.getElementById('event-name').value.trim() || 'Draft Analysis';
+    alert('Analysis Draft saved successfully: ' + name + '\nConfig snapshot cached in local operational state.');
+  };
+
+  // Launch pipeline
+  window.launchAnalysis = function() {
+    var name = document.getElementById('event-name').value.trim();
+    if (!name) {
+      alert('Please enter an Event Identifier / Name in Step 01.');
+      document.getElementById('event-name').focus();
+      return;
+    }
+
+    var runBtn = document.getElementById('btn-run');
+    var progressBox = document.getElementById('pipeline-progress-box');
+    var fill = document.getElementById('ppb-fill');
+    var pctText = document.getElementById('ppb-pct-text');
+    var logText = document.getElementById('ppb-log-text');
+
+    runBtn.disabled = true;
+    runBtn.style.opacity = '0.7';
+    runBtn.style.cursor = 'not-allowed';
+    document.getElementById('btn-run-text').textContent = 'EXECUTING WORKLOAD...';
+
+    progressBox.style.display = 'flex';
+    fill.style.width = '0%';
+
+    var stages = [
+      { pct: 15, msg: "Fetching Sentinel-1 IW GRD tiles for T0 & T1..." },
+      { pct: 35, msg: "Radiometric calibration & Lee-Sigma speckle filtering..." },
+      { pct: 55, msg: "Co-registering baseline to sub-pixel accuracy (< 0.1 px)..." },
+      { pct: 75, msg: "Running Bayesian Otsu log-ratio change detection..." },
+      { pct: 90, msg: "Extracting flood vector polygons & computing spatial uncertainty..." },
+      { pct: 100, msg: "Analysis Complete! Dispatching results to AI Change Detection..." }
+    ];
+
+    var idx = 0;
+    var stepInterval = setInterval(function() {
+      if (idx < stages.length) {
+        var s = stages[idx];
+        fill.style.width = s.pct + '%';
+        pctText.textContent = s.pct + '%';
+        logText.textContent = s.msg;
+        idx++;
+      } else {
+        clearInterval(stepInterval);
+        setTimeout(function() {
+          window.location.href = 'ai-change-detection.html';
+        }, 800);
+      }
+    }, 600);
+  };
+
+  window.simulateQuickLaunch = function() {
+    var runBtn = document.getElementById('btn-run');
+    runBtn.disabled = true;
+    document.getElementById('btn-run-text').textContent = 'SIMULATING RUN \u2192';
+    setTimeout(function() {
+      window.location.href = 'ai-change-detection.html';
+    }, 700);
+  };
+
+  // Initial trigger
+  updateReviewSummary();
+})();
 </script>
 </body>
 </html>
