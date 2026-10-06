@@ -337,13 +337,14 @@ def ingest_jrc(force: bool = False) -> Path:
         return out_path
 
     ref_grid = grid.reference_grid()
-    jrc = ee.Image("JRC/GSW1_4/GlobalSurfaceWater").select("occurrence")
-    perm_water = jrc.unmask(0).gt(50).toUint8()
-
     cache_path = config.GEE_CACHE_DIR / "jrc_perm_raw.tif"
-    download_ee_image(perm_water, cache_path, ref_grid)
+    if not cache_path.exists():
+        init_ee()
+        jrc = ee.Image("JRC/GSW1_4/GlobalSurfaceWater").select("occurrence")
+        perm_water = jrc.unmask(0).gt(50).toUint8()
+        download_ee_image(perm_water, cache_path, ref_grid)
 
-    grid.align_to_grid(cache_path, out_path, resampling="nearest", dtype="uint8", nodata=255)
+    grid.align_to_grid(cache_path, out_path, resampling="nearest", dtype="uint8", nodata=255, src_nodata=255)
     grid.check_aligned(out_path)
 
     print_raster_stats(out_path)

@@ -196,8 +196,7 @@ def generate_confidence_raster(
     valid = (
         (pre != -9999.0) & (~np.isnan(pre)) &
         (post != -9999.0) & (~np.isnan(post)) &
-        (slope != -9999.0) & (~np.isnan(slope)) &
-        (perm != 255)
+        (slope != -9999.0) & (~np.isnan(slope))
     )
 
     conf_arr, _, _, _ = compute_pixel_confidence_array(

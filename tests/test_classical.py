@@ -254,3 +254,51 @@ def test_evaluate_chip_benchmark_offline(tmp_path: Path):
         assert res["classical"]["iou"] > 0
     finally:
         config.DATA_DIR = orig_cache
+
+
+def test_perm_water_land_nodata_regression():
+    """
+    Regression test for permanent water land-mask bug:
+    Ensures that:
+      - Dry land (perm_water=0) is part of valid data and detected correctly
+      - Permanent river (perm_water=1) is excluded from flood detection
+      - Flood patch on dry land (perm_water=0) is detected as flood (1)
+      - Unmapped / nodata perm_water (255) does NOT cause land to be discarded
+    """
+    shape = (100, 100)
+    pre = np.full(shape, -12.0, dtype=np.float32)
+    post = np.full(shape, -12.0, dtype=np.float32)
+    slope = np.full(shape, 1.0, dtype=np.float32)
+
+    # perm_water: dry land = 0, permanent river = 1, nodata margin = 255
+    perm_water = np.zeros(shape, dtype=np.uint8)
+    perm_water[:, :20] = 1       # permanent river
+    perm_water[:, 80:] = 255     # nodata boundary
+    pre[:, :20] = -22.0
+    post[:, :20] = -22.0
+
+    # Flood patch on dry land (rows 40:60, cols 30:50) -> 20x20 = 400 pixels
+    post[40:60, 30:50] = -22.0
+
+    flood, valid, _ = detect_classical_arrays(
+        pre=pre,
+        post=post,
+        perm_water=perm_water,
+        slope=slope,
+        post_db_max=-18.0,
+        diff_db_max=-3.0,
+        slope_max_deg=5.0,
+        min_object_pixels=25,
+    )
+
+    # 1. Permanent river must NOT be detected as flood
+    assert np.all(flood[:, :20] == 0)
+
+    # 2. Flood patch on dry land must be detected
+    assert np.all(flood[40:60, 30:50] == 1)
+    assert np.sum(flood == 1) == 400
+
+    # 3. Dry land without flood must be 0 (valid non-flood)
+    assert flood[0, 50] == 0
+    assert bool(valid[0, 50]) is True
+

@@ -130,11 +130,10 @@ def detect_classical_arrays(
     actual_post_threshold : float
         The threshold used for post backscatter.
     """
-    # Construct valid data mask
+    # Construct valid data mask (pre, post, slope validity only)
     valid = (
         (pre != -9999.0) & (~np.isnan(pre)) &
         (post != -9999.0) & (~np.isnan(post)) &
-        (perm_water != 255) &
         (slope != -9999.0) & (~np.isnan(slope))
     )
 
@@ -148,12 +147,12 @@ def detect_classical_arrays(
     # Primary detection rules:
     # 1. Dark post backscatter (water reflection)
     # 2. Significant backscatter drop from pre to post
-    # 3. Not permanent water (JRC occurrence <= 50)
+    # 3. Not permanent water (perm_water == 1 is an exclusion, never a validity condition)
     # 4. Low terrain slope (< SLOPE_MAX_DEG)
     raw_flood = (
         (post < actual_post_thresh) &
         (diff < diff_db_max) &
-        (perm_water == 0) &
+        (perm_water != 1) &
         (slope < slope_max_deg) &
         valid
     )

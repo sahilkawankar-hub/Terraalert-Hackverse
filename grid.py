@@ -80,6 +80,7 @@ def align_to_grid(
     resampling: str = "bilinear",
     dtype: str = "float32",
     nodata: float = -9999,
+    src_nodata: float | int | None = None,
 ) -> Path:
     """Reproject *src_path* onto the reference grid and write to *dst_path*.
 
@@ -126,6 +127,7 @@ def align_to_grid(
                     fill_value=nodata,
                     dtype=dtype,
                 )
+                actual_src_nodata = src_nodata if src_nodata is not None else src.nodata
                 reproject(
                     source=src_data,
                     destination=dst_data,
@@ -133,7 +135,7 @@ def align_to_grid(
                     src_crs=src.crs,
                     dst_transform=grid["transform"],
                     dst_crs=grid["crs"],
-                    src_nodata=src.nodata,
+                    src_nodata=actual_src_nodata,
                     dst_nodata=nodata,
                     resampling=resamp,
                 )
