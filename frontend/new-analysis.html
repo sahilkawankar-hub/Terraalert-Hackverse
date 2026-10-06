@@ -1052,9 +1052,7 @@
     <a href="ai-change-detection.html" class="nav-item">
       <span class="nav-icon">&#9650;</span> AI Change Detection
     </a>
-    <a href="confidence-zoning.html" class="nav-item">
-      <span class="nav-icon">&#128737;</span> Spatial Confidence
-    </a>
+
     <a href="emergency-priority-map.html" class="nav-item">
       <span class="nav-icon">&#128506;</span> Emergency Priority Map
     </a>
@@ -1761,7 +1759,7 @@
     alert('Analysis Draft saved successfully: ' + name + '\nConfig snapshot cached in local operational state.');
   };
 
-  // Launch pipeline
+  // Launch pipeline — tries real API first, simulates if unavailable
   window.launchAnalysis = function() {
     var name = document.getElementById('event-name').value.trim();
     if (!name) {
@@ -1780,34 +1778,64 @@
     runBtn.style.opacity = '0.7';
     runBtn.style.cursor = 'not-allowed';
     document.getElementById('btn-run-text').textContent = 'EXECUTING WORKLOAD...';
-
     progressBox.style.display = 'flex';
-    fill.style.width = '0%';
+    fill.style.width = '5%';
+    pctText.textContent = '5%';
+    logText.textContent = 'Connecting to TerraAlert pipeline...';
 
-    var stages = [
-      { pct: 15, msg: "Fetching Sentinel-1 IW GRD tiles for T0 & T1..." },
-      { pct: 35, msg: "Radiometric calibration & Lee-Sigma speckle filtering..." },
-      { pct: 55, msg: "Co-registering baseline to sub-pixel accuracy (< 0.1 px)..." },
-      { pct: 75, msg: "Running Bayesian Otsu log-ratio change detection..." },
-      { pct: 90, msg: "Extracting flood vector polygons & computing spatial uncertainty..." },
-      { pct: 100, msg: "Analysis Complete! Dispatching results to AI Change Detection..." }
-    ];
-
-    var idx = 0;
-    var stepInterval = setInterval(function() {
-      if (idx < stages.length) {
-        var s = stages[idx];
-        fill.style.width = s.pct + '%';
-        pctText.textContent = s.pct + '%';
-        logText.textContent = s.msg;
-        idx++;
-      } else {
-        clearInterval(stepInterval);
-        setTimeout(function() {
-          window.location.href = 'ai-change-detection.html';
-        }, 800);
-      }
-    }, 600);
+    // Try real backend pipeline endpoint
+    fetch('http://127.0.0.1:8000/api/pipeline/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_name: name, skip_ml: true })
+    })
+    .then(function(r) {
+      if (r.ok) return r.json();
+      throw new Error('API not available');
+    })
+    .then(function(resp) {
+      // Real pipeline started — poll /api/pipeline/status
+      logText.textContent = 'Pipeline running on server... (stage: ' + (resp.stage || 'starting') + ')';
+      var pollInterval = setInterval(function() {
+        fetch('http://127.0.0.1:8000/api/pipeline/status').then(function(r){ return r.json(); })
+        .then(function(s) {
+          var pct = s.progress_pct || 50;
+          fill.style.width = pct + '%';
+          pctText.textContent = pct + '%';
+          logText.textContent = 'Stage: ' + (s.current_stage || '...') + ' — ' + (s.message || '');
+          if (s.status === 'done' || pct >= 100) {
+            clearInterval(pollInterval);
+            logText.textContent = 'Pipeline complete. Loading results...';
+            setTimeout(function(){ window.location.href = 'ai-change-detection.html'; }, 800);
+          }
+        }).catch(function(){ clearInterval(pollInterval); });
+      }, 1500);
+    })
+    .catch(function() {
+      // Backend pipeline endpoint not available — run animated simulation
+      logText.textContent = 'Running analysis (demo mode)...';
+      var stages = [
+        { pct: 15, msg: "Fetching Sentinel-1 IW GRD tiles for T0 & T1..." },
+        { pct: 35, msg: "Radiometric calibration & Lee-Sigma speckle filtering..." },
+        { pct: 55, msg: "Co-registering baseline to sub-pixel accuracy (< 0.1 px)..." },
+        { pct: 75, msg: "Running classical SAR log-ratio change detection..." },
+        { pct: 90, msg: "Extracting flood vector polygons & zone scoring..." },
+        { pct: 100, msg: "Analysis complete! Loading AI Change Detection..." }
+      ];
+      var idx = 0;
+      var stepInterval = setInterval(function() {
+        if (idx < stages.length) {
+          var s = stages[idx];
+          fill.style.width = s.pct + '%';
+          pctText.textContent = s.pct + '%';
+          logText.textContent = s.msg;
+          idx++;
+        } else {
+          clearInterval(stepInterval);
+          setTimeout(function(){ window.location.href = 'ai-change-detection.html'; }, 800);
+        }
+      }, 600);
+    });
   };
 
   window.simulateQuickLaunch = function() {

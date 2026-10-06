@@ -250,9 +250,7 @@
     <a href="ai-change-detection.html" class="nav-item" id="nav-aicd">
       <span class="nav-icon">&#9650;</span> AI Change Detection
     </a>
-    <a href="confidence-zoning.html" class="nav-item" id="nav-confidence">
-      <span class="nav-icon">&#128737;</span> Spatial Confidence
-    </a>
+
     <a href="emergency-priority-map.html" class="nav-item" id="nav-priority">
       <span class="nav-icon">&#128506;</span> Emergency Priority Map
     </a>
@@ -522,7 +520,7 @@ document.querySelectorAll('.pipeline-step').forEach(function(step, idx) {
     step.classList.add('active');
     if (idx <= 2) window.location.href = 'new-analysis.html';
     else if (idx === 3) window.location.href = 'ai-change-detection.html';
-    else if (idx === 4) window.location.href = 'confidence-zoning.html';
+    else if (idx === 4) window.location.href = 'ai-change-detection.html';
     else if (idx === 5) window.location.href = 'emergency-priority-map.html';
     else if (idx === 6) window.open('/api/meta', '_blank');
   });
