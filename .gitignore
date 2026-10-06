@@ -51,3 +51,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# ML model weight cache (large files, downloaded on demand via huggingface_hub)
+data/models/
