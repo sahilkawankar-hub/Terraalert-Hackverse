@@ -29,7 +29,8 @@
     "diff_db_max": -3.0,
     "slope_max_deg": 5.0,
     "min_object_pixels": 25,
-    "min_flood_pct": 1.0
+    "min_flood_pct": 1.0,
+    "used_otsu": false
   },
   "weights": {
     "severity": 0.3,
@@ -43,5 +44,44 @@
   },
   "demo": false,
   "mock": false,
-  "updated_at": "2026-10-06T04:52:10.879444+00:00"
+  "updated_at": "2026-10-06T04:52:10.879444+00:00",
+  "flood_classical_summary": {
+    "flooded_pixels": 3698,
+    "flooded_pct": 1.12,
+    "flooded_km2": 1.48
+  },
+  "metrics": {
+    "naive": {
+      "iou": 0.6969,
+      "precision": 0.9056,
+      "recall": 0.7515,
+      "f1": 0.8214,
+      "tp": 73755,
+      "fp": 7685,
+      "fn": 24388,
+      "tn": 67143,
+      "valid_pixels": 172971
+    },
+    "classical": {
+      "iou": 0.5403,
+      "precision": 0.9099,
+      "recall": 0.5709,
+      "f1": 0.7016,
+      "tp": 56031,
+      "fp": 5551,
+      "fn": 42112,
+      "tn": 69277,
+      "valid_pixels": 172971
+    },
+    "reference": "Sen1Floods11 (data/raw/LabelHand/)",
+    "overlap_aoi": false,
+    "experiment": "Sen1Floods11 Ground-Truth Benchmark (Separate Experiment)",
+    "reference_dataset": "Sen1Floods11 Hand-Labeled (India_1017769_LabelHand.tif)",
+    "reference_location": "Nagaon / Brahmaputra Valley, Assam (26.60°N, 93.02°E)",
+    "chip_id": "India_1017769",
+    "aoi_overlap": false,
+    "aoi_disclaimer": "Sen1Floods11 chips do not geographically overlap the Barpeta-Nalbari AOI. Zero accuracy is claimed on the project AOI per AGENT_CONTEXT rule 5.",
+    "pre_event_source": "COPERNICUS/S1_GRD (May 2019, Relative Orbit 143, ASCENDING)",
+    "post_event_source": "Sen1Floods11 S1Hand (July 2019, Relative Orbit 143, ASCENDING)"
+  }
 }
