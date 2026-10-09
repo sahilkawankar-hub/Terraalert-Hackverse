@@ -1,38 +1,29 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "app": {
-      "root": "frontend"
-    },
-    "backend": {
-      "root": ".",
-      "runtime": "python"
-    }
-  },
+  "version": 2,
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": {
-        "service": "backend"
-      }
+      "destination": "/api/index.py"
     },
     {
       "source": "/docs",
-      "destination": {
-        "service": "backend"
-      }
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/redoc",
+      "destination": "/api/index.py"
     },
     {
       "source": "/openapi.json",
-      "destination": {
-        "service": "backend"
-      }
+      "destination": "/api/index.py"
     },
     {
-      "source": "/(.*)",
-      "destination": {
-        "service": "app"
-      }
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/((?!api/|docs|redoc|openapi.json).*)",
+      "destination": "/frontend/$1"
     }
   ]
 }
